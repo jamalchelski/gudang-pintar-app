@@ -191,7 +191,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
     if (!user || role !== 'admin') {
-         toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menambahkan item baru.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can add new items.', variant: 'destructive' });
         return false;
     }
     try {
@@ -201,7 +201,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (docSnap.exists()) {
         toast({
             title: 'Error',
-            description: `Item dengan SKU ${itemData.id} sudah ada.`,
+            description: `Item with SKU ${itemData.id} already exists.`,
             variant: 'destructive',
         });
         return false;
@@ -235,7 +235,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error adding item:', error);
       toast({
           title: 'Error',
-          description: 'Gagal menambahkan item baru.',
+          description: 'Failed to add new item.',
           variant: 'destructive',
       });
       return false;
@@ -244,7 +244,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const editItem = async (itemData: InventoryItem, oldQuantity: number, type: IncomingLog['type'] = 'stock_update', poNumber?: string): Promise<boolean> => {
      if (!user || role !== 'admin') {
-        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat mengedit item.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can edit items.', variant: 'destructive' });
         return false;
     }
     try {
@@ -277,7 +277,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error editing item:', error);
         toast({
             title: 'Error',
-            description: 'Gagal mengedit item.',
+            description: 'Failed to edit item.',
             variant: 'destructive',
         });
         return false;
@@ -320,14 +320,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 
         toast({
-            title: 'Stock Berkurang',
-            description: `Stok untuk item ${itemId} berkurang sebanyak ${amount}.`,
+            title: 'Stock Reduced',
+            description: `Stock for ${itemId} reduced by ${amount}.`,
         });
 
         if (newQuantity < item.min_stock) {
             toast({
-            title: 'Peringatan Stok Rendah',
-            description: `${item.name} sekarang berjumlah ${newQuantity}, di bawah stok minimum ${item.min_stock}.`,
+            title: 'Low Stock Warning',
+            description: `${item.name} is now at ${newQuantity}, below the minimum of ${item.min_stock}.`,
             variant: 'destructive',
             });
         }
@@ -335,7 +335,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
        console.error('Error reducing stock:', error);
        toast({
           title: 'Error',
-          description: 'Gagal memperbarui stok di Firestore.',
+          description: 'Failed to update stock in Firestore.',
           variant: 'destructive',
         });
     }
@@ -356,21 +356,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       );
       
       toast({
-        title: 'Stok Diperbarui',
-        description: `Stok untuk item ${itemId} diperbarui menjadi ${newQuantity}.`,
+        title: 'Stock Updated',
+        description: `Stock for ${itemId} updated to ${newQuantity}.`,
       });
 
       if (newQuantity < item.min_stock) {
         toast({
-          title: 'Peringatan Stok Rendah',
-          description: `${item.name} sekarang berjumlah ${newQuantity}, yang berada di bawah stok minimum ${item.min_stock}.`,
+          title: 'Low Stock Warning',
+          description: `${item.name} is now ${newQuantity}, which is below minimum stock of ${item.min_stock}.`,
         });
       }
     } catch (error) {
        console.error('Error updating stock:', error);
        toast({
           title: 'Error',
-          description: 'Gagal memperbarui stok di Firestore.',
+          description: 'Failed to update stock in Firestore.',
           variant: 'destructive',
         });
     }
@@ -378,7 +378,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addCategory = async (name: string): Promise<boolean> => {
     if (role !== 'admin') {
-        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menambahkan kategori.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can add categories.', variant: 'destructive' });
         return false;
     }
     try {
@@ -389,14 +389,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return true;
     } catch (error) {
         console.error('Error adding category:', error);
-        toast({ title: 'Error', description: 'Gagal menambahkan kategori.', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Failed to add category.', variant: 'destructive' });
         return false;
     }
   };
 
   const deleteCategory = async (id: string): Promise<boolean> => {
     if (role !== 'admin') {
-        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menghapus kategori.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can delete categories.', variant: 'destructive' });
         return false;
     }
     try {
@@ -405,14 +405,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return true;
     } catch (error) {
         console.error('Error deleting category:', error);
-        toast({ title: 'Error', description: 'Gagal menghapus kategori.', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Failed to delete category.', variant: 'destructive' });
         return false;
     }
   };
   
   const addUnit = async (name: string): Promise<boolean> => {
     if (role !== 'admin') {
-        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menambahkan satuan.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can add units.', variant: 'destructive' });
         return false;
     }
     try {
@@ -423,14 +423,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return true;
     } catch (error) {
         console.error('Error adding unit:', error);
-        toast({ title: 'Error', description: 'Gagal menambahkan satuan.', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Failed to add unit.', variant: 'destructive' });
         return false;
     }
   };
 
   const deleteUnit = async (id: string): Promise<boolean> => {
     if (role !== 'admin') {
-        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menghapus satuan.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can delete units.', variant: 'destructive' });
         return false;
     }
     try {
@@ -439,7 +439,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return true;
     } catch (error) {
         console.error('Error deleting unit:', error);
-        toast({ title: 'Error', description: 'Gagal menghapus satuan.', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Failed to delete unit.', variant: 'destructive' });
         return false;
     }
   };
@@ -467,11 +467,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const processPickingList = async (poNumber?: string) => {
     if (pickingList.length === 0) {
-      toast({ title: 'Daftar Kosong', description: 'Tidak ada item untuk diproses.', variant: 'destructive' });
+      toast({ title: 'List is empty', description: 'There are no items to process.', variant: 'destructive' });
       return;
     }
      if (!user) {
-      toast({ title: 'Error', description: 'Anda harus masuk untuk melakukan ini.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'You must be logged in to do this.', variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -487,11 +487,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // 2. Validation (can be done outside or inside, but before writes)
         for (const [index, itemDoc] of itemDocs.entries()) {
           if (!itemDoc.exists()) {
-            throw new Error(`Item dengan ID ${pickingList[index].id} tidak ditemukan.`);
+            throw new Error(`Item with ID ${pickingList[index].id} not found.`);
           }
           const currentQuantity = itemDoc.data().quantity;
           if (currentQuantity < pickingList[index].quantity) {
-            throw new Error(`Stok tidak mencukupi untuk item ${pickingList[index].name}.`);
+            throw new Error(`Insufficient stock for item ${pickingList[index].name}.`);
           }
         }
         
@@ -524,13 +524,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await fetchCollection('inventory', setInventory, [], false);
       setPickingList([]);
 
-      toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
+      toast({ title: 'Success', description: 'Sparepart retrieval processed successfully.' });
 
     } catch (error: any) {
         console.error("Error processing picking list: ", error);
         toast({
             title: 'Error',
-            description: error.message || 'Gagal memproses pengambilan.',
+            description: error.message || 'Failed to process picking list.',
             variant: 'destructive',
         });
     }
@@ -539,7 +539,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
     if (!user || role !== 'admin') {
-      toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat mengimpor data.', variant: 'destructive' });
+      toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
       return false;
     };
     setLoading(true);
@@ -572,7 +572,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error importing inventory:', error);
       toast({
         title: 'Error',
-        description: 'Gagal mengimpor data inventaris.',
+        description: 'Failed to import inventory data.',
         variant: 'destructive',
       });
       setLoading(false);
@@ -582,7 +582,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
     if (!user || role !== 'admin') {
-        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat melakukan stock take.', variant: 'destructive' });
+        toast({ title: 'Permission Error', description: 'Only admins can perform a stock take.', variant: 'destructive' });
         return false;
     }
 
@@ -654,7 +654,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error submitting stock take:", error);
         toast({
             title: 'Error',
-            description: 'Gagal mengirimkan hasil stock take.',
+            description: 'Failed to submit stock take.',
             variant: 'destructive',
         });
         return false;
@@ -663,7 +663,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const receiveItemsForPo = async (poData: PoData, items: ReceivingItem[]): Promise<boolean> => {
     if (!user || role !== 'admin') {
-      toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menerima barang.', variant: 'destructive' });
+      toast({ title: 'Permission Error', description: 'Only admins can receive goods.', variant: 'destructive' });
       return false;
     }
     setLoading(true);
@@ -678,7 +678,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             // 2. Validation Phase
             for(const [index, itemDoc] of itemDocs.entries()) {
                  if (!itemDoc.exists()) {
-                    throw new Error(`Item dengan SKU ${items[index].id} tidak ditemukan di inventaris.`);
+                    throw new Error(`Item with SKU ${items[index].id} not found in inventory.`);
                 }
             }
 
@@ -715,8 +715,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         await fetchCollection('incoming_logs', setIncomingLogs, [], false);
         
         toast({
-            title: "Penerimaan Berhasil",
-            description: `${items.length} jenis item untuk PO ${poData.poNumber} berhasil disimpan.`
+            title: "Receiving Successful",
+            description: `${items.length} item types for PO ${poData.poNumber} saved successfully.`
         });
         setLoading(false);
         return true;
@@ -724,8 +724,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
         console.error("Error receiving items:", error);
         toast({
-            title: "Error Penerimaan",
-            description: error.message || 'Gagal menyimpan data penerimaan.',
+            title: "Receiving Error",
+            description: error.message || 'Failed to save receiving data.',
             variant: 'destructive'
         });
         setLoading(false);
@@ -762,8 +762,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     user,
   };
   
-  if (loading && !user) {
-    return <div className="flex h-screen items-center justify-center">Memuat Aplikasi...</div>;
+  if (loading && !user && pathname !== '/login') {
+    return <div className="flex h-screen items-center justify-center">Loading Application...</div>;
   }
 
   return (
