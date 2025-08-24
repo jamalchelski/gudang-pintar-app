@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useContext } from 'react';
@@ -14,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReduceStockDialogProps {
   isOpen: boolean;
@@ -24,13 +26,18 @@ interface ReduceStockDialogProps {
 export function ReduceStockDialog({ isOpen, setIsOpen, item }: ReduceStockDialogProps) {
   const { reduceStock } = useContext(AppContext);
   const [amount, setAmount] = useState<number>(1);
+  const [poNumber, setPoNumber] = useState('');
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount > 0 && amount <= item.quantity) {
-      reduceStock(item.id, amount);
+      reduceStock(item.id, amount, poNumber);
       setIsOpen(false);
       setAmount(1);
+      setPoNumber('');
+    } else {
+        toast({ title: "Error", description: "Jumlah tidak valid.", variant: "destructive" });
     }
   };
 
@@ -45,6 +52,18 @@ export function ReduceStockDialog({ isOpen, setIsOpen, item }: ReduceStockDialog
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="po-number" className="text-right">
+                No. PO/Ref
+              </Label>
+              <Input
+                id="po-number"
+                value={poNumber}
+                onChange={e => setPoNumber(e.target.value)}
+                className="col-span-3"
+                placeholder="(Opsional)"
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="amount" className="text-right">
                 Amount

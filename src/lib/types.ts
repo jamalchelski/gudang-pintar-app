@@ -35,6 +35,7 @@ export type RetrievalLog = {
     quantityRetrieved: number;
     user: string;
     timestamp: string;
+    poNumber?: string;
 }
 
 export type IncomingLog = {
@@ -43,9 +44,10 @@ export type IncomingLog = {
     itemName: string;
     quantityAdded: number;
     newQuantity: number;
-    type: 'new_item' | 'stock_update' | 'stock_take';
+    type: 'new_item' | 'stock_update' | 'stock_take' | 'receiving';
     user: string;
     timestamp: string;
+    poNumber?: string;
 }
 
 export type StockTakeItemDetail = {

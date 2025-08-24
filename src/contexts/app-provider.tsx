@@ -24,8 +24,8 @@ interface AppContextType {
   incomingLogs: IncomingLog[];
   stockTakeLogs: StockTakeLog[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
-  editItem: (item: InventoryItem, oldQuantity: number) => Promise<boolean>;
-  reduceStock: (itemId: string, amount: number) => void;
+  editItem: (item: InventoryItem, oldQuantity: number, type?: IncomingLog['type'], poNumber?: string) => Promise<boolean>;
+  reduceStock: (itemId: string, amount: number, poNumber?: string) => Promise<void>;
   updateStock: (itemId: string, newQuantity: number) => void;
   addCategory: (name: string) => Promise<boolean>;
   deleteCategory: (id: string) => Promise<boolean>;
@@ -34,7 +34,7 @@ interface AppContextType {
   addItemToPickingList: (item: InventoryItem) => void;
   removeItemFromPickingList: (itemId: string) => void;
   updatePickingListQuantity: (itemId: string, quantity: number) => void;
-  processPickingList: () => Promise<void>;
+  processPickingList: (poNumber?: string) => Promise<void>;
   importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
   submitStockTake: (counts: Record<string, number>) => Promise<boolean>;
   loading: boolean;
@@ -53,7 +53,7 @@ export const AppContext = createContext<AppContextType>({
   stockTakeLogs: [],
   addItem: async () => false,
   editItem: async () => false,
-  reduceStock: () => {},
+  reduceStock: async () => {},
   updateStock: () => {},
   addCategory: async () => false,
   deleteCategory: async () => false,
@@ -88,7 +88,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
    useEffect(() => {
     const initialize = async () => {
-      // await seedAuth(); // This was moved inside onAuthStateChanged logic
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setLoading(true);
         if (currentUser) {
@@ -105,14 +104,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             router.push('/login');
           }
         }
-        // A small timeout to prevent layout shifts
         setTimeout(() => setLoading(false), 50); 
       });
        setInitialized(true);
       return () => unsubscribe();
     };
     if (!initialized) {
-        // We only seed users if not in an auth-related page to avoid race conditions
         if (pathname !== '/login') {
             seedAuth();
         }
@@ -151,11 +148,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           } as T)
       );
 
-       // Sort by name if the property exists, otherwise no specific sort.
-      if (data.length > 0 && data[0].name) {
-          data = data.sort((a: any, b: any) => a.name.localeCompare(b.name));
-      } else if (collectionName.includes('logs')) {
+       if (data.length > 0 && 'timestamp' in data[0]) {
           data = data.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      } else if (data.length > 0 && data[0].name) {
+          data = data.sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
       
       setter(data);
@@ -226,7 +222,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       
       setInventory(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
 
-      // Create incoming log
       const logEntry: Omit<IncomingLog, 'id'> = {
         itemId: newItem.id,
         itemName: newItem.name,
@@ -253,7 +248,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const editItem = async (itemData: InventoryItem, oldQuantity: number): Promise<boolean> => {
+  const editItem = async (itemData: InventoryItem, oldQuantity: number, type: IncomingLog['type'] = 'stock_update', poNumber?: string): Promise<boolean> => {
      if (!user) return false;
     try {
         const itemDocRef = doc(db, 'inventory', itemData.id);
@@ -271,14 +266,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 itemName: itemData.name,
                 quantityAdded: quantityChange,
                 newQuantity: itemData.quantity,
-                type: 'stock_update',
+                type: type,
                 user: user.email ?? 'unknown',
                 timestamp: new Date().toISOString(),
+                ...(poNumber && { poNumber }),
             };
              const logRef = await addDoc(collection(db, 'incoming_logs'), logEntry);
              setIncomingLogs(prev => [{...logEntry, id: logRef.id}, ...prev]);
         }
-
 
         return true;
     } catch (error) {
@@ -292,34 +287,53 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const reduceStock = async (itemId: string, amount: number) => {
+  const reduceStock = async (itemId: string, amount: number, poNumber?: string) => {
+    if(!user) return;
     const item = inventory.find(i => i.id === itemId);
     if (!item) return;
 
     const newQuantity = Math.max(0, item.quantity - amount);
     
     try {
-      const itemDoc = doc(db, 'inventory', itemId);
-      await updateDoc(itemDoc, { quantity: newQuantity, last_updated: new Date().toISOString() });
+        const batch = writeBatch(db);
+
+        const itemDoc = doc(db, 'inventory', itemId);
+        batch.update(itemDoc, { quantity: newQuantity, last_updated: new Date().toISOString() });
       
-      setInventory(prevInventory =>
-        prevInventory.map(i =>
-          i.id === itemId ? { ...i, quantity: newQuantity, last_updated: new Date().toISOString() } : i
-        )
-      );
+        const logEntry: Omit<RetrievalLog, 'id'> = {
+            itemId: item.id,
+            itemName: item.name,
+            quantityRetrieved: amount,
+            user: user.email ?? 'unknown',
+            timestamp: new Date().toISOString(),
+            ...(poNumber && { poNumber }),
+        };
 
-      toast({
-        title: 'Stock Berkurang',
-        description: `Stok untuk item ${itemId} berkurang sebanyak ${amount}.`,
-      });
+        const logRef = doc(collection(db, "retrieval_logs"));
+        batch.set(logRef, logEntry);
+        
+        await batch.commit();
 
-      if (newQuantity < item.min_stock) {
+        setInventory(prevInventory =>
+            prevInventory.map(i =>
+            i.id === itemId ? { ...i, quantity: newQuantity, last_updated: new Date().toISOString() } : i
+            )
+        );
+        setRetrievalLogs(prev => [{...logEntry, id: logRef.id}, ...prev]);
+
+
         toast({
-          title: 'Peringatan Stok Rendah',
-          description: `${item.name} sekarang berjumlah ${newQuantity}, di bawah stok minimum ${item.min_stock}.`,
-          variant: 'destructive',
+            title: 'Stock Berkurang',
+            description: `Stok untuk item ${itemId} berkurang sebanyak ${amount}.`,
         });
-      }
+
+        if (newQuantity < item.min_stock) {
+            toast({
+            title: 'Peringatan Stok Rendah',
+            description: `${item.name} sekarang berjumlah ${newQuantity}, di bawah stok minimum ${item.min_stock}.`,
+            variant: 'destructive',
+            });
+        }
     } catch (error) {
        console.error('Error reducing stock:', error);
        toast({
@@ -438,7 +452,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setPickingList(prev => prev.map(pi => pi.id === itemId ? { ...pi, quantity: Math.max(0, Math.min(quantity, inventoryItem.quantity)) } : pi));
   };
 
-  const processPickingList = async () => {
+  const processPickingList = async (poNumber?: string) => {
     if (pickingList.length === 0) {
       toast({ title: 'Daftar Kosong', description: 'Tidak ada item untuk diproses.', variant: 'destructive' });
       return;
@@ -450,9 +464,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
         const newLogs: RetrievalLog[] = [];
-        await runTransaction(db, async (transaction) => {
-            const itemsToUpdate: { ref: DocumentReference, newQuantity: number }[] = [];
+        const itemsToUpdate: { ref: DocumentReference; newQuantity: number }[] = [];
 
+        await runTransaction(db, async (transaction) => {
             for (const pickedItem of pickingList) {
                 const itemDocRef = doc(db, 'inventory', pickedItem.id);
                 const itemDoc = await transaction.get(itemDocRef);
@@ -475,7 +489,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                     itemName: pickedItem.name,
                     quantityRetrieved: pickedItem.quantity,
                     user: user.email ?? 'unknown',
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    ...(poNumber && { poNumber })
                 };
 
                 const logRef = doc(collection(db, "retrieval_logs"));
@@ -525,7 +540,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         };
         batch.set(docRef, newItem, { merge: true });
 
-        // For local state update
         const existingIndex = updatedInventory.findIndex(i => i.id === item.id);
         if (existingIndex > -1) {
           updatedInventory[existingIndex] = newItem;
@@ -537,9 +551,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await batch.commit();
       setInventory(updatedInventory.sort((a,b) => a.name.localeCompare(b.name)));
       
-      // We are not creating logs for imports to avoid spamming the log.
-      // This could be changed if needed.
-
       setLoading(false);
       return true;
     } catch (error) {
@@ -584,7 +595,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                     last_updated: new Date().toISOString(),
                 });
 
-                // Create incoming log for positive variance
                 if (variance > 0) {
                     const logEntry: Omit<IncomingLog, 'id'> = {
                         itemId: item.id,
@@ -600,13 +610,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                     newIncomingLogs.push({...logEntry, id: logRef.id});
                 }
                 
-                // Update local state
                 updatedInventory[itemIndex].quantity = countedQuantity;
                 updatedInventory[itemIndex].last_updated = new Date().toISOString();
             }
         }
 
-        // Create the main stock take log
         const stockTakeLogRef = doc(collection(db, 'stock_take_logs'));
         const newStockTakeLog: Omit<StockTakeLog, 'id'> = {
             timestamp: new Date().toISOString(),
@@ -617,7 +625,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         await batch.commit();
         
-        // Update local state
         setInventory(updatedInventory);
         setStockTakeLogs(prev => [{ ...newStockTakeLog, id: stockTakeLogRef.id }, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
         if (newIncomingLogs.length > 0) {
@@ -674,7 +681,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   if(user && isLoginPage) {
-    // This prevents a flash of the login page if the user is already authenticated.
     return <div className="flex h-screen items-center justify-center">Mengalihkan...</div>;
   }
 

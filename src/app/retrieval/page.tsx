@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { AppContext } from '@/contexts/app-provider';
 import { Button } from '@/components/ui/button';
@@ -9,17 +9,63 @@ import { RetrievalInventoryTable } from '@/components/retrieval/retrieval-invent
 import { PickingList } from '@/components/retrieval/picking-list';
 import { AlertTriangle, ShoppingCart } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function RetrievalPage() {
   const { pickingList, processPickingList, loading } = useContext(AppContext);
+  const [poNumber, setPoNumber] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleProcess = async () => {
+    await processPickingList(poNumber);
+    setIsDialogOpen(false);
+    setPoNumber('');
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Pengambilan Sparepart">
-        <Button onClick={processPickingList} disabled={pickingList.length === 0 || loading}>
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Proses Pengambilan
-        </Button>
+         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+                <Button disabled={pickingList.length === 0 || loading}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Proses Pengambilan
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Konfirmasi Pengambilan</DialogTitle>
+                    <DialogDescription>
+                        Masukkan nomor PO atau referensi untuk pengambilan ini.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Label htmlFor="po-number">Nomor PO / Referensi</Label>
+                    <Input 
+                        id="po-number"
+                        value={poNumber}
+                        onChange={(e) => setPoNumber(e.target.value)}
+                        placeholder="Contoh: PO-12345"
+                    />
+                </div>
+                <DialogFooter>
+                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
+                     <Button onClick={handleProcess} disabled={loading}>
+                        {loading ? 'Memproses...' : 'Konfirmasi & Proses'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -28,7 +74,11 @@ export default function RetrievalPage() {
             <RetrievalInventoryTable />
         </div>
         <div>
-            <h2 className="text-xl font-semibold mb-4">Daftar Pengambilan</h2>
+            <div className="flex justify-between items-center mb-4">
+                 <h2 className="text-xl font-semibold">Daftar Pengambilan</h2>
+                 
+            </div>
+           
             {pickingList.length === 0 ? (
                  <Alert>
                     <AlertTriangle className="h-4 w-4" />

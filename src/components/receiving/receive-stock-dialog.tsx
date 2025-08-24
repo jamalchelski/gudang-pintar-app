@@ -28,6 +28,7 @@ export function ReceiveStockDialog({ isOpen, setIsOpen, item }: ReceiveStockDial
   const { editItem } = useContext(AppContext);
   const { toast } = useToast();
   const [amount, setAmount] = useState<number | ''>('');
+  const [poNumber, setPoNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,12 +37,16 @@ export function ReceiveStockDialog({ isOpen, setIsOpen, item }: ReceiveStockDial
       toast({ title: 'Error', description: 'Jumlah harus lebih besar dari 0.', variant: 'destructive' });
       return;
     }
+     if (!poNumber.trim()) {
+      toast({ title: 'Error', description: 'Nomor PO tidak boleh kosong.', variant: 'destructive' });
+      return;
+    }
     
     setLoading(true);
     const newQuantity = item.quantity + Number(amount);
     const updatedItem = { ...item, quantity: newQuantity };
 
-    const success = await editItem(updatedItem, item.quantity);
+    const success = await editItem(updatedItem, item.quantity, 'receiving', poNumber);
     
     if (success) {
       toast({
@@ -50,6 +55,7 @@ export function ReceiveStockDialog({ isOpen, setIsOpen, item }: ReceiveStockDial
       });
       setIsOpen(false);
       setAmount('');
+      setPoNumber('');
     }
     setLoading(false);
   };
@@ -61,10 +67,22 @@ export function ReceiveStockDialog({ isOpen, setIsOpen, item }: ReceiveStockDial
           <DialogHeader>
             <DialogTitle>Terima Stok: {item.name}</DialogTitle>
             <DialogDescription>
-                Stok saat ini: {item.quantity} {item.unit}. Masukkan jumlah barang yang diterima.
+                Stok saat ini: {item.quantity} {item.unit}. Masukkan jumlah dan nomor PO.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="poNumber" className="text-right">
+                No. PO
+              </Label>
+              <Input
+                id="poNumber"
+                value={poNumber}
+                onChange={e => setPoNumber(e.target.value)}
+                className="col-span-3"
+                placeholder="Masukkan nomor PO"
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="amount" className="text-right">
                 Jumlah

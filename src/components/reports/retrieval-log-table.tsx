@@ -36,6 +36,7 @@ export function RetrievalLogTable() {
         Timestamp: new Date(log.timestamp).toLocaleString(),
         SKU: log.itemId,
         'Item Name': log.itemName,
+        'PO Number': log.poNumber || '-',
         'Quantity Retrieved': log.quantityRetrieved,
         User: log.user,
     }));
@@ -64,7 +65,7 @@ export function RetrievalLogTable() {
                 <TableRow>
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Nama Item</TableHead>
-                <TableHead>SKU</TableHead>
+                <TableHead>No. PO/Ref</TableHead>
                 <TableHead className="text-right">Jumlah Diambil</TableHead>
                 <TableHead>Pengguna</TableHead>
                 </TableRow>
@@ -74,8 +75,11 @@ export function RetrievalLogTable() {
                 retrievalLogs.map(log => (
                     <TableRow key={log.id}>
                     <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                    <TableCell className="font-medium">{log.itemName}</TableCell>
-                    <TableCell className="font-mono text-xs">{log.itemId}</TableCell>
+                    <TableCell>
+                        <div className="font-medium">{log.itemName}</div>
+                        <div className="text-sm text-muted-foreground font-mono">{log.itemId}</div>
+                    </TableCell>
+                    <TableCell>{log.poNumber || '-'}</TableCell>
                     <TableCell className="text-right font-bold">{log.quantityRetrieved}</TableCell>
                     <TableCell>{log.user}</TableCell>
                     </TableRow>

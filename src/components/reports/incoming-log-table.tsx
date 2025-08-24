@@ -29,6 +29,8 @@ const getTypeBadge = (type: IncomingLog['type']) => {
             return <Badge variant="secondary">Update Manual</Badge>;
         case 'stock_take':
             return <Badge className="bg-blue-100 text-blue-800">Stock Take</Badge>;
+        case 'receiving':
+            return <Badge className="bg-green-100 text-green-800">Penerimaan</Badge>;
         default:
             return <Badge variant="outline">Lainnya</Badge>;
     }
@@ -52,6 +54,7 @@ export function IncomingLogTable() {
         SKU: log.itemId,
         'Item Name': log.itemName,
         Type: log.type,
+        'PO Number': log.poNumber || '-',
         'Quantity Added': log.quantityAdded,
         'New Quantity': log.newQuantity,
         User: log.user,
@@ -81,7 +84,7 @@ export function IncomingLogTable() {
                 <TableRow>
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Nama Item</TableHead>
-                <TableHead>SKU</TableHead>
+                <TableHead>No. PO</TableHead>
                 <TableHead>Tipe</TableHead>
                 <TableHead className="text-right">Jumlah Ditambah</TableHead>
                 <TableHead className="text-right">Stok Baru</TableHead>
@@ -93,8 +96,11 @@ export function IncomingLogTable() {
                 incomingLogs.map(log => (
                     <TableRow key={log.id}>
                     <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                    <TableCell className="font-medium">{log.itemName}</TableCell>
-                    <TableCell className="font-mono text-xs">{log.itemId}</TableCell>
+                    <TableCell>
+                        <div className="font-medium">{log.itemName}</div>
+                        <div className="text-sm text-muted-foreground font-mono">{log.itemId}</div>
+                    </TableCell>
+                    <TableCell>{log.poNumber || '-'}</TableCell>
                     <TableCell>
                         {getTypeBadge(log.type)}
                     </TableCell>
