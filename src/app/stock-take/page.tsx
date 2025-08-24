@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Download, CheckCircle, Loader2 } from 'lucide-react';
@@ -28,9 +28,13 @@ export default function StockTakePage() {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const hasCounts = useMemo(() => {
+        return Object.values(counts).some(value => value !== '' && !isNaN(Number(value)));
+    }, [counts]);
+
     const handleExportReport = () => {
-        if (inventory.length === 0) {
-            toast({ title: 'No Data to Export', variant: 'destructive'});
+        if (!hasCounts) {
+            toast({ title: 'Tidak ada data untuk diekspor', description: 'Silakan masukkan setidaknya satu kuantitas hitungan.', variant: 'destructive'});
             return;
         }
 
@@ -76,13 +80,13 @@ export default function StockTakePage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title="Stock Take">
-        <Button variant="outline" onClick={handleExportReport} disabled={isSubmitting}>
+        <Button variant="outline" onClick={handleExportReport} disabled={isSubmitting || !hasCounts}>
           <Download className="mr-2 h-4 w-4" />
           Export Report
         </Button>
          <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button disabled={isSubmitting || loading}>
+                <Button disabled={isSubmitting || loading || !hasCounts}>
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                     Submit Counts
                 </Button>
