@@ -455,27 +455,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     
     try {
-      const itemReads: Promise<{ id: string; doc: any }>[] = [];
-      for (const pickedItem of pickingList) {
-        const itemDocRef = doc(db, 'inventory', pickedItem.id);
-        itemReads.push(getDoc(itemDocRef).then(doc => ({ id: pickedItem.id, doc })));
-      }
-      const itemDocs = await Promise.all(itemReads);
-
       await runTransaction(db, async (transaction) => {
-        for (const { id, doc: itemDoc } of itemDocs) {
-          if (!itemDoc.exists()) throw new Error(`Item dengan ID ${id} tidak ditemukan.`);
-          const pickedItem = pickingList.find(p => p.id === id)!;
+        // 1. Read Phase: Read all necessary documents first.
+        const itemDocs = await Promise.all(
+          pickingList.map(item => transaction.get(doc(db, 'inventory', item.id)))
+        );
+
+        // 2. Validation (can be done outside or inside, but before writes)
+        for (const [index, itemDoc] of itemDocs.entries()) {
+          if (!itemDoc.exists()) {
+            throw new Error(`Item dengan ID ${pickingList[index].id} tidak ditemukan.`);
+          }
           const currentQuantity = itemDoc.data().quantity;
-          if (currentQuantity < pickedItem.quantity) {
-            throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
+          if (currentQuantity < pickingList[index].quantity) {
+            throw new Error(`Stok tidak mencukupi untuk item ${pickingList[index].name}.`);
           }
         }
         
-        for (const pickedItem of pickingList) {
+        // 3. Write Phase: Perform all writes after all reads.
+        for (const [index, pickedItem] of pickingList.entries()) {
             const itemDocRef = doc(db, 'inventory', pickedItem.id);
-            const itemDoc = await transaction.get(itemDocRef);
-            const currentQuantity = itemDoc.data()!.quantity;
+            const currentQuantity = itemDocs[index].data()!.quantity;
             const newQuantity = currentQuantity - pickedItem.quantity;
             
             transaction.update(itemDocRef, {
