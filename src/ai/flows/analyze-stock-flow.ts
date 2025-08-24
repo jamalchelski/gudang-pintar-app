@@ -28,25 +28,25 @@ const StockAnalysisInputSchema = z.array(z.object({
 
 // Define the output schema for a structured response from the AI.
 const StockAnalysisOutputSchema = z.object({
-    executiveSummary: z.string().describe("A brief, high-level overview of the overall stock health."),
+    executiveSummary: z.string().describe("Ringkasan eksekutif singkat dan tingkat tinggi tentang kesehatan stok secara keseluruhan."),
     overstockedItems: z.array(z.object({
         id: z.string(),
         name: z.string(),
         quantity: z.number(),
         max_stock: z.number(),
-    })).describe("A list of items where the current quantity is significantly higher than the max_stock level."),
+    })).describe("Daftar item di mana kuantitas saat ini secara signifikan lebih tinggi dari tingkat max_stock."),
     understockedItems: z.array(z.object({
         id: z.string(),
         name: z.string(),
         quantity: z.number(),
         min_stock: z.number(),
-    })).describe("A list of items where the current quantity is below the min_stock level."),
+    })).describe("Daftar item di mana kuantitas saat ini di bawah tingkat min_stock."),
     deadStock: z.array(z.object({
         id: z.string(),
         name: z.string(),
         last_updated: z.string(),
-    })).describe("A list of items that have not been updated or had movement in a long time (e.g., > 6 months), suggesting they might be dead stock. The current date is " + new Date().toDateString()),
-    recommendations: z.array(z.string()).describe("A list of actionable recommendations to improve inventory management, such as items to reorder, items to potentially discount, or adjustments to stock levels."),
+    })).describe("Daftar item yang sudah lama tidak diupdate atau tidak ada pergerakan (misalnya > 6 bulan), yang menunjukkan kemungkinan stok mati. Tanggal hari ini adalah " + new Date().toDateString()),
+    recommendations: z.array(z.string()).describe("Daftar rekomendasi yang dapat ditindaklanjuti untuk meningkatkan manajemen inventaris, seperti item yang harus dipesan ulang, item yang berpotensi didiskon, atau penyesuaian tingkat stok."),
 });
 
 export type StockAnalysis = z.infer<typeof StockAnalysisOutputSchema>;
@@ -61,19 +61,19 @@ const stockAnalysisPrompt = ai.definePrompt({
     name: 'stockAnalysisPrompt',
     input: { schema: StockAnalysisInputSchema },
     output: { schema: StockAnalysisOutputSchema },
-    prompt: `You are an expert inventory management analyst for a spare parts warehouse.
-    Analyze the following inventory data and provide a detailed analysis.
+    prompt: `Anda adalah seorang analis manajemen inventaris ahli untuk gudang suku cadang.
+    Analisis data inventaris berikut dan berikan analisis terperinci dalam Bahasa Indonesia.
     
-    Today's date is: ${new Date().toISOString()}
+    Tanggal hari ini adalah: ${new Date().toISOString()}
 
-    Your analysis should include:
-    1.  An executive summary of the overall stock condition.
-    2.  A list of overstocked items (quantity > max_stock).
-    3.  A list of understocked items (quantity < min_stock).
-    4.  A list of potential dead stock (items with no updates for over 6 months).
-    5.  Actionable recommendations for improvement. Be specific. For example, instead of "reorder items", suggest *which* items to reorder.
+    Analisis Anda harus mencakup:
+    1.  Ringkasan eksekutif dari kondisi stok secara keseluruhan.
+    2.  Daftar item yang stoknya berlebih (kuantitas > stok_maks).
+    3.  Daftar item yang stoknya kurang (kuantitas < stok_min).
+    4.  Daftar potensi stok mati (item yang tidak ada pembaruan selama lebih dari 6 bulan).
+    5.  Rekomendasi yang dapat ditindaklanjuti untuk perbaikan. Berikan secara spesifik. Misalnya, alih-alih "pesan ulang item", sarankan item *mana* yang harus dipesan ulang.
 
-    Inventory Data:
+    Data Inventaris:
     \`\`\`json
     {{{json input}}}
     \`\`\`
