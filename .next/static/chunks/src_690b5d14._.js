@@ -177,6 +177,7 @@ __turbopack_context__.s({
     "db": (()=>db),
     "seedAuth": (()=>seedAuth)
 });
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/app/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/@firebase/app/dist/esm/index.esm2017.js [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
@@ -193,13 +194,13 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$
 ;
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    projectId: 'gudang-pintar-3f8yl',
-    appId: '1:448507006798:web:c26eec14d9d56fbaa0181f',
-    storageBucket: 'gudang-pintar-3f8yl.firebasestorage.app',
-    apiKey: 'AIzaSyDqV26E8CZWtU10Dhf1L0WEA6vWZWNPbOE',
-    authDomain: 'gudang-pintar-3f8yl.firebaseapp.com',
-    measurementId: '',
-    messagingSenderId: '448507006798'
+    apiKey: ("TURBOPACK compile-time value", "AIzaSyDqV26E8CZWtU10Dhf1L0WEA6vWZWNPbOE"),
+    authDomain: ("TURBOPACK compile-time value", "gudang-pintar-3f8yl.firebaseapp.com"),
+    projectId: ("TURBOPACK compile-time value", "gudang-pintar-3f8yl"),
+    storageBucket: ("TURBOPACK compile-time value", "gudang-pintar-3f8yl.firebasestorage.app"),
+    messagingSenderId: ("TURBOPACK compile-time value", "448507006798"),
+    appId: ("TURBOPACK compile-time value", "1:448507006798:web:c26eec14d9d56fbaa0181f"),
+    measurementId: ("TURBOPACK compile-time value", "")
 };
 // Initialize Firebase
 const app = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["initializeApp"])(firebaseConfig);
