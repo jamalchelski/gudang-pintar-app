@@ -564,61 +564,63 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     setLoading(true);
 
-    try {
-        const existingItemsMap = new Map(inventory.map(item => [item.id, item]));
-        
-        const chunks: typeof items[] = [];
-        for (let i = 0; i < items.length; i += 50) {
-            chunks.push(items.slice(i, i + 50));
-        }
+    let successCount = 0;
+    let errorCount = 0;
 
-        for (const chunk of chunks) {
-            const batch = writeBatch(db);
-            for (const item of chunk) {
-                const docRef = doc(db, 'inventory', item.id);
-                const newItem: InventoryItem = {
+    for (const item of items) {
+        try {
+            await runTransaction(db, async (transaction) => {
+                const itemRef = doc(db, 'inventory', item.id);
+                const itemDoc = await transaction.get(itemRef);
+
+                const newItemData: InventoryItem = {
                     ...item,
                     last_updated: new Date().toISOString(),
                 };
-                batch.set(docRef, newItem, { merge: true });
 
-                const existingItem = existingItemsMap.get(item.id);
-                const quantityChange = existingItem ? newItem.quantity - existingItem.quantity : newItem.quantity;
+                const oldQuantity = itemDoc.exists() ? itemDoc.data().quantity : 0;
+                const type = itemDoc.exists() ? 'stock_update' : 'new_item';
+                
+                transaction.set(itemRef, newItemData, { merge: true });
 
-                if (quantityChange !== 0) {
-                     const logEntry: Omit<IncomingLog, 'id'> = {
-                        itemId: newItem.id,
-                        itemName: newItem.name,
+                const quantityChange = newItemData.quantity - oldQuantity;
+
+                if (quantityChange > 0) {
+                    const logEntry: Omit<IncomingLog, 'id'> = {
+                        itemId: newItemData.id,
+                        itemName: newItemData.name,
                         quantityAdded: quantityChange,
-                        newQuantity: newItem.quantity,
-                        type: existingItem ? 'stock_update' : 'new_item',
+                        newQuantity: newItemData.quantity,
+                        type: type,
                         user: user.email ?? 'unknown',
                         timestamp: new Date().toISOString(),
                         poNumber: 'IMPORT',
                     };
                     const logRef = doc(collection(db, 'incoming_logs'));
-                    batch.set(logRef, logEntry);
+                    transaction.set(logRef, logEntry);
                 }
-            }
-            await batch.commit();
+            });
+            successCount++;
+        } catch (e) {
+            console.error(`Failed to import item ${item.id}:`, e);
+            errorCount++;
         }
+    }
 
-        await fetchCollection('inventory', setInventory, [], false);
-        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
-        
-        setLoading(false);
-        return true;
-
-    } catch (error) {
-        console.error('Error importing inventory:', error);
+    if (errorCount > 0) {
         toast({
-            title: 'Error',
-            description: 'Failed to import inventory data.',
+            title: 'Import Partially Failed',
+            description: `${successCount} items imported successfully, but ${errorCount} items failed. Check console for details.`,
             variant: 'destructive',
         });
-        setLoading(false);
-        return false;
     }
+
+    // Refetch data to ensure UI is up-to-date
+    await fetchCollection('inventory', setInventory, [], false);
+    await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+
+    setLoading(false);
+    return errorCount === 0;
 };
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
@@ -814,6 +816,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     </AppContext.Provider>
   );
 };
+
+    
 
     
 
