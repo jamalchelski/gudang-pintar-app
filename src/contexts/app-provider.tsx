@@ -190,7 +190,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [toast, user, fetchCollection]);
 
   const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || role !== 'admin') {
+         toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menambahkan item baru.', variant: 'destructive' });
+        return false;
+    }
     try {
       const itemDocRef = doc(db, 'inventory', itemData.id);
 
@@ -232,7 +235,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error adding item:', error);
       toast({
           title: 'Error',
-          description: 'Gagal menambahkan item baru. Hanya admin.',
+          description: 'Gagal menambahkan item baru.',
           variant: 'destructive',
       });
       return false;
@@ -240,7 +243,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const editItem = async (itemData: InventoryItem, oldQuantity: number, type: IncomingLog['type'] = 'stock_update', poNumber?: string): Promise<boolean> => {
-     if (!user) return false;
+     if (!user || role !== 'admin') {
+        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat mengedit item.', variant: 'destructive' });
+        return false;
+    }
     try {
         const itemDocRef = doc(db, 'inventory', itemData.id);
         const updatedItem = {
@@ -271,7 +277,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error editing item:', error);
         toast({
             title: 'Error',
-            description: 'Gagal mengedit item. Hanya admin.',
+            description: 'Gagal mengedit item.',
             variant: 'destructive',
         });
         return false;
@@ -371,6 +377,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addCategory = async (name: string): Promise<boolean> => {
+    if (role !== 'admin') {
+        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menambahkan kategori.', variant: 'destructive' });
+        return false;
+    }
     try {
         const docRef = doc(db, 'categories', name.toLowerCase().replace(/\s/g, '-'));
         const newCategory = { id: docRef.id, name: name };
@@ -385,41 +395,53 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteCategory = async (id: string): Promise<boolean> => {
-      try {
-          await deleteDoc(doc(db, 'categories', id));
-          setCategories(prev => prev.filter(c => c.id !== id));
-          return true;
-      } catch (error) {
-          console.error('Error deleting category:', error);
-          toast({ title: 'Error', description: 'Gagal menghapus kategori.', variant: 'destructive' });
-          return false;
-      }
+    if (role !== 'admin') {
+        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menghapus kategori.', variant: 'destructive' });
+        return false;
+    }
+    try {
+        await deleteDoc(doc(db, 'categories', id));
+        setCategories(prev => prev.filter(c => c.id !== id));
+        return true;
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        toast({ title: 'Error', description: 'Gagal menghapus kategori.', variant: 'destructive' });
+        return false;
+    }
   };
   
   const addUnit = async (name: string): Promise<boolean> => {
-      try {
-          const docRef = doc(db, 'units', name.toLowerCase());
-          const newUnit = { id: docRef.id, name: name };
-          await setDoc(docRef, newUnit);
-          setUnits(prev => [...prev, newUnit].sort((a,b) => a.name.localeCompare(b.name)));
-          return true;
-      } catch (error) {
-          console.error('Error adding unit:', error);
-          toast({ title: 'Error', description: 'Gagal menambahkan satuan.', variant: 'destructive' });
-          return false;
-      }
+    if (role !== 'admin') {
+        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menambahkan satuan.', variant: 'destructive' });
+        return false;
+    }
+    try {
+        const docRef = doc(db, 'units', name.toLowerCase());
+        const newUnit = { id: docRef.id, name: name };
+        await setDoc(docRef, newUnit);
+        setUnits(prev => [...prev, newUnit].sort((a,b) => a.name.localeCompare(b.name)));
+        return true;
+    } catch (error) {
+        console.error('Error adding unit:', error);
+        toast({ title: 'Error', description: 'Gagal menambahkan satuan.', variant: 'destructive' });
+        return false;
+    }
   };
 
   const deleteUnit = async (id: string): Promise<boolean> => {
-      try {
-          await deleteDoc(doc(db, 'units', id));
-          setUnits(prev => prev.filter(u => u.id !== id));
-          return true;
-      } catch (error) {
-          console.error('Error deleting unit:', error);
-          toast({ title: 'Error', description: 'Gagal menghapus satuan.', variant: 'destructive' });
-          return false;
-      }
+    if (role !== 'admin') {
+        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menghapus satuan.', variant: 'destructive' });
+        return false;
+    }
+    try {
+        await deleteDoc(doc(db, 'units', id));
+        setUnits(prev => prev.filter(u => u.id !== id));
+        return true;
+    } catch (error) {
+        console.error('Error deleting unit:', error);
+        toast({ title: 'Error', description: 'Gagal menghapus satuan.', variant: 'destructive' });
+        return false;
+    }
   };
 
   const addItemToPickingList = (item: InventoryItem) => {
@@ -457,8 +479,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       await runTransaction(db, async (transaction) => {
         // 1. Read Phase: Read all necessary documents first.
+        const itemDocRefs = pickingList.map(item => doc(db, 'inventory', item.id));
         const itemDocs = await Promise.all(
-          pickingList.map(item => transaction.get(doc(db, 'inventory', item.id)))
+          itemDocRefs.map(ref => transaction.get(ref))
         );
 
         // 2. Validation (can be done outside or inside, but before writes)
@@ -497,8 +520,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
       });
       
-      const newLogs = await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
-      const newInventory = await fetchCollection('inventory', setInventory, [], false);
+      await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
+      await fetchCollection('inventory', setInventory, [], false);
       setPickingList([]);
 
       toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
@@ -515,7 +538,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || role !== 'admin') {
+      toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat mengimpor data.', variant: 'destructive' });
+      return false;
+    };
     setLoading(true);
     try {
       const batch = writeBatch(db);
@@ -555,7 +581,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || role !== 'admin') {
+        toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat melakukan stock take.', variant: 'destructive' });
+        return false;
+    }
 
     try {
         const batch = writeBatch(db);
@@ -633,13 +662,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const receiveItemsForPo = async (poData: PoData, items: ReceivingItem[]): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || role !== 'admin') {
+      toast({ title: 'Error Perizinan', description: 'Hanya admin yang dapat menerima barang.', variant: 'destructive' });
+      return false;
+    }
     setLoading(true);
     try {
         await runTransaction(db, async (transaction) => {
             // 1. Read Phase
+            const itemDocsRefs = items.map(item => doc(db, 'inventory', item.id));
             const itemDocs = await Promise.all(
-                items.map(item => transaction.get(doc(db, 'inventory', item.id)))
+                itemDocsRefs.map(ref => transaction.get(ref))
             );
 
             // 2. Validation Phase
@@ -729,7 +762,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     user,
   };
   
-  if (loading) {
+  if (loading && !user) {
     return <div className="flex h-screen items-center justify-center">Memuat Aplikasi...</div>;
   }
 
