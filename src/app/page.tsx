@@ -6,14 +6,33 @@ import { Archive, AlertTriangle, Boxes, PackageCheck } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { AppContext } from '@/contexts/app-provider';
 import { InventoryTable } from '@/components/inventory/inventory-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
-  const { inventory } = useContext(AppContext);
+  const { inventory, loading } = useContext(AppContext);
 
   const totalItems = inventory.length;
   const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
   const lowStockItems = inventory.filter(item => item.quantity < item.min_stock);
   const outOfStockItems = inventory.filter(item => item.quantity === 0);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PageHeader title="Dashboard" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Low Stock Items</h2>
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
