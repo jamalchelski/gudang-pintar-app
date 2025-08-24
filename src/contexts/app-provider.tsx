@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { InventoryItem, UserRole, Category, Unit, PickingListItem, RetrievalLog, IncomingLog } from '@/lib/types';
+import { InventoryItem, UserRole, Category, Unit, PickingListItem, RetrievalLog, IncomingLog, StockTakeLog, StockTakeItemDetail } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentReference, query, orderBy } from 'firebase/firestore';
 import { db, auth, seedAuth } from '@/lib/firebase';
@@ -22,6 +22,7 @@ interface AppContextType {
   pickingList: PickingListItem[];
   retrievalLogs: RetrievalLog[];
   incomingLogs: IncomingLog[];
+  stockTakeLogs: StockTakeLog[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
   editItem: (item: InventoryItem, oldQuantity: number) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number) => void;
@@ -49,6 +50,7 @@ export const AppContext = createContext<AppContextType>({
   pickingList: [],
   retrievalLogs: [],
   incomingLogs: [],
+  stockTakeLogs: [],
   addItem: async () => false,
   editItem: async () => false,
   reduceStock: () => {},
@@ -76,6 +78,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [pickingList, setPickingList] = useState<PickingListItem[]>([]);
   const [retrievalLogs, setRetrievalLogs] = useState<RetrievalLog[]>([]);
   const [incomingLogs, setIncomingLogs] = useState<IncomingLog[]>([]);
+  const [stockTakeLogs, setStockTakeLogs] = useState<StockTakeLog[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
@@ -183,6 +186,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
       await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
       await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+      await fetchCollection('stock_take_logs', setStockTakeLogs, [], false);
 
 
       if(seeded) {
@@ -556,23 +560,69 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
         const batch = writeBatch(db);
         const updatedInventory = [...inventory];
+        const stockTakeDetails: StockTakeItemDetail[] = [];
+        const newIncomingLogs: IncomingLog[] = [];
 
         for (const [itemId, countedQuantity] of Object.entries(counts)) {
-            const itemRef = doc(db, 'inventory', itemId);
-            batch.update(itemRef, {
-                quantity: countedQuantity,
-                last_updated: new Date().toISOString(),
-            });
-
-            // Update local state
             const itemIndex = updatedInventory.findIndex(item => item.id === itemId);
             if (itemIndex > -1) {
+                const item = updatedInventory[itemIndex];
+                const variance = countedQuantity - item.quantity;
+                
+                stockTakeDetails.push({
+                    id: item.id,
+                    name: item.name,
+                    brand: item.brand,
+                    systemQty: item.quantity,
+                    countedQty: countedQuantity,
+                    variance: variance
+                });
+
+                const itemRef = doc(db, 'inventory', itemId);
+                batch.update(itemRef, {
+                    quantity: countedQuantity,
+                    last_updated: new Date().toISOString(),
+                });
+
+                // Create incoming log for positive variance
+                if (variance > 0) {
+                    const logEntry: Omit<IncomingLog, 'id'> = {
+                        itemId: item.id,
+                        itemName: item.name,
+                        quantityAdded: variance,
+                        newQuantity: countedQuantity,
+                        type: 'stock_take',
+                        user: user.email ?? 'unknown',
+                        timestamp: new Date().toISOString(),
+                    };
+                    const logRef = doc(collection(db, 'incoming_logs'));
+                    batch.set(logRef, logEntry);
+                    newIncomingLogs.push({...logEntry, id: logRef.id});
+                }
+                
+                // Update local state
                 updatedInventory[itemIndex].quantity = countedQuantity;
                 updatedInventory[itemIndex].last_updated = new Date().toISOString();
             }
         }
+
+        // Create the main stock take log
+        const stockTakeLogRef = doc(collection(db, 'stock_take_logs'));
+        const newStockTakeLog: Omit<StockTakeLog, 'id'> = {
+            timestamp: new Date().toISOString(),
+            user: user.email ?? 'unknown',
+            details: stockTakeDetails
+        };
+        batch.set(stockTakeLogRef, newStockTakeLog);
+
         await batch.commit();
+        
+        // Update local state
         setInventory(updatedInventory);
+        setStockTakeLogs(prev => [{ ...newStockTakeLog, id: stockTakeLogRef.id }, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+        if (newIncomingLogs.length > 0) {
+            setIncomingLogs(prev => [...newIncomingLogs, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+        }
 
         return true;
     } catch (error) {
@@ -595,6 +645,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     pickingList,
     retrievalLogs,
     incomingLogs,
+    stockTakeLogs,
     addItem,
     editItem,
     reduceStock,
@@ -605,7 +656,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     deleteUnit,
     addItemToPickingList,
     removeItemFromPickingList,
-  updatePickingListQuantity,
+    updatePickingListQuantity,
     processPickingList,
     importInventory,
     submitStockTake,

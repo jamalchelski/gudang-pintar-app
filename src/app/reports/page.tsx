@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RetrievalLogTable } from '@/components/reports/retrieval-log-table';
 import { IncomingLogTable } from '@/components/reports/incoming-log-table';
+import { StockTakeLogTable } from '@/components/reports/stock-take-log-table';
 
 export default function ReportsPage() {
   return (
@@ -14,12 +15,16 @@ export default function ReportsPage() {
         <TabsList>
           <TabsTrigger value="retrieval">Riwayat Pengambilan</TabsTrigger>
           <TabsTrigger value="incoming">Riwayat Barang Masuk</TabsTrigger>
+          <TabsTrigger value="stock-take">Riwayat Stock Take</TabsTrigger>
         </TabsList>
         <TabsContent value="retrieval" className="mt-4">
           <RetrievalLogTable />
         </TabsContent>
         <TabsContent value="incoming" className="mt-4">
           <IncomingLogTable />
+        </TabsContent>
+        <TabsContent value="stock-take" className="mt-4">
+          <StockTakeLogTable />
         </TabsContent>
       </Tabs>
     </div>

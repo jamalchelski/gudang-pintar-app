@@ -43,7 +43,23 @@ export type IncomingLog = {
     itemName: string;
     quantityAdded: number;
     newQuantity: number;
-    type: 'new_item' | 'stock_update';
+    type: 'new_item' | 'stock_update' | 'stock_take';
     user: string;
     timestamp: string;
+}
+
+export type StockTakeItemDetail = {
+    id: string;
+    name: string;
+    brand: string;
+    systemQty: number;
+    countedQty: number;
+    variance: number;
+}
+
+export type StockTakeLog = {
+    id: string;
+    timestamp: string;
+    user: string;
+    details: StockTakeItemDetail[];
 }

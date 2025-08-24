@@ -15,6 +15,20 @@ import { Skeleton } from '../ui/skeleton';
 import { Card } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '../ui/badge';
+import { IncomingLog } from '@/lib/types';
+
+const getTypeBadge = (type: IncomingLog['type']) => {
+    switch (type) {
+        case 'new_item':
+            return <Badge variant="default">Item Baru</Badge>;
+        case 'stock_update':
+            return <Badge variant="secondary">Update Manual</Badge>;
+        case 'stock_take':
+            return <Badge className="bg-blue-100 text-blue-800">Stock Take</Badge>;
+        default:
+            return <Badge variant="outline">Lainnya</Badge>;
+    }
+}
 
 export function IncomingLogTable() {
   const { incomingLogs, loading } = useContext(AppContext);
@@ -46,9 +60,7 @@ export function IncomingLogTable() {
                   <TableCell className="font-medium">{log.itemName}</TableCell>
                   <TableCell className="font-mono text-xs">{log.itemId}</TableCell>
                   <TableCell>
-                    <Badge variant={log.type === 'new_item' ? 'default' : 'secondary'}>
-                      {log.type === 'new_item' ? 'Item Baru' : 'Update Stok'}
-                    </Badge>
+                    {getTypeBadge(log.type)}
                   </TableCell>
                   <TableCell className="text-right font-bold text-green-600">+{log.quantityAdded}</TableCell>
                   <TableCell className="text-right">{log.newQuantity}</TableCell>
