@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext } from 'react';
@@ -9,14 +10,9 @@ import { InventoryTable } from '@/components/inventory/inventory-table';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
-  const { inventory, loading } = useContext(AppContext);
+  const { inventory, loading, user } = useContext(AppContext);
 
-  const totalItems = inventory.length;
-  const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
-  const lowStockItems = inventory.filter(item => item.quantity < item.min_stock);
-  const outOfStockItems = inventory.filter(item => item.quantity === 0);
-
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="flex flex-col gap-4">
         <PageHeader title="Dashboard" />
@@ -33,6 +29,11 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  const totalItems = inventory.length;
+  const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
+  const lowStockItems = inventory.filter(item => item.quantity < item.min_stock);
+  const outOfStockItems = inventory.filter(item => item.quantity === 0);
 
   return (
     <div className="flex flex-col gap-4">

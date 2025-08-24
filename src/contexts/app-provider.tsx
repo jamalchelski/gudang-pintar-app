@@ -1,11 +1,14 @@
+
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { InventoryItem, UserRole } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { collection, doc, getDocs, updateDoc, writeBatch } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { MOCK_INVENTORY } from '@/lib/mock-data';
+import { User, onAuthStateChanged } from 'firebase/auth';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface AppContextType {
   role: UserRole;
@@ -14,24 +17,57 @@ interface AppContextType {
   reduceStock: (itemId: string, amount: number) => void;
   updateStock: (itemId: string, newQuantity: number) => void;
   loading: boolean;
+  user: User | null;
 }
 
 export const AppContext = createContext<AppContextType>({
-  role: 'admin',
+  role: 'user',
   setRole: () => {},
   inventory: [],
   reduceStock: () => {},
   updateStock: () => {},
   loading: true,
+  user: null,
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const [role, setRole] = useState<UserRole>('admin');
+  const [role, setRole] = useState<UserRole>('user');
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setLoading(true);
+      if (currentUser) {
+        setUser(currentUser);
+        // This is a simplified role-check.
+        const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
+        setRole(userRole);
+        if (pathname === '/login') {
+          router.push('/');
+        }
+      } else {
+        setUser(null);
+        setRole('user'); // default role
+        if (pathname !== '/login') {
+          router.push('/login');
+        }
+      }
+      // Initial loading is done after auth check
+       setTimeout(() => setLoading(false), 200);
+    });
+    return () => unsubscribe();
+  }, [router, pathname]);
+
+
+  useEffect(() => {
+    if (!user) return; // Don't fetch if no user
+
     const fetchInventory = async () => {
       setLoading(true);
       try {
@@ -72,7 +108,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchInventory();
-  }, [toast]);
+  }, [toast, user]);
 
   const reduceStock = async (itemId: string, amount: number) => {
     const item = inventory.find(i => i.id === itemId);
@@ -147,8 +183,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const value = {
+    role,
+    setRole,
+    inventory,
+    reduceStock,
+    updateStock,
+    loading,
+    user,
+  };
+  
+  // Render children only when not on the login page or when auth is determined
+  const isLoginPage = pathname === '/login';
+  if (loading && !isLoginPage) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+  
+  if (!user && !isLoginPage) {
+    return null; // Don't render protected pages if not logged in
+  }
+
+  if(user && isLoginPage) {
+    return null; // Don't render login page if logged in
+  }
+
+
   return (
-    <AppContext.Provider value={{ role, setRole, inventory, reduceStock, updateStock, loading }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );
