@@ -15,6 +15,7 @@ import {
   FileText,
   ArchiveRestore,
   UserCircle,
+  BrainCircuit,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -34,6 +35,7 @@ const adminNavItems = [
   { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore },
   { href: '/reorder', label: 'Reorder', icon: PackageSearch },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
+  { href: '/analysis', label: 'Analisis AI', icon: BrainCircuit },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
   { href: '/reports', label: 'Laporan', icon: FileText },
   { href: '/profile', label: 'Profil', icon: UserCircle },
