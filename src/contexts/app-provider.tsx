@@ -2,9 +2,9 @@
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { InventoryItem, UserRole, Category, Unit } from '@/lib/types';
+import { InventoryItem, UserRole, Category, Unit, PickingListItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
@@ -19,6 +19,7 @@ interface AppContextType {
   inventory: InventoryItem[];
   categories: Category[];
   units: Unit[];
+  pickingList: PickingListItem[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
   editItem: (item: InventoryItem) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number) => void;
@@ -27,6 +28,10 @@ interface AppContextType {
   deleteCategory: (id: string) => Promise<boolean>;
   addUnit: (name: string) => Promise<boolean>;
   deleteUnit: (id: string) => Promise<boolean>;
+  addItemToPickingList: (item: InventoryItem) => void;
+  removeItemFromPickingList: (itemId: string) => void;
+  updatePickingListQuantity: (itemId: string, quantity: number) => void;
+  processPickingList: () => Promise<void>;
   loading: boolean;
   user: User | null;
 }
@@ -37,6 +42,7 @@ export const AppContext = createContext<AppContextType>({
   inventory: [],
   categories: [],
   units: [],
+  pickingList: [],
   addItem: async () => false,
   editItem: async () => false,
   reduceStock: () => {},
@@ -45,6 +51,10 @@ export const AppContext = createContext<AppContextType>({
   deleteCategory: async () => false,
   addUnit: async () => false,
   deleteUnit: async () => false,
+  addItemToPickingList: () => {},
+  removeItemFromPickingList: () => {},
+  updatePickingListQuantity: () => {},
+  processPickingList: async () => {},
   loading: true,
   user: null,
 });
@@ -55,6 +65,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [pickingList, setPickingList] = useState<PickingListItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -66,7 +77,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       if (currentUser) {
         setUser(currentUser);
-        // This is a simplified role-check.
         const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
         setRole(userRole);
         if (pathname === '/login') {
@@ -74,12 +84,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
       } else {
         setUser(null);
-        setRole('user'); // default role
+        setRole('user');
         if (pathname !== '/login') {
           router.push('/login');
         }
       }
-      // Initial loading is done after auth check
        setTimeout(() => setLoading(false), 200);
     });
     return () => unsubscribe();
@@ -104,7 +113,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           batch.set(docRef, item);
         });
         await batch.commit();
-        // After seeding, fetch again
          snapshot = await getDocs(collectionRef);
       }
       
@@ -115,7 +123,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             ...doc.data(),
           } as T)
       );
-      setter(data);
+      setter(data.sort((a: any, b: any) => a.name?.localeCompare(b.name)));
 
       return snapshot.empty && shouldSeed;
 
@@ -123,7 +131,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error(`Error fetching ${collectionName}:`, error);
       toast({
         title: 'Error',
-        description: `Failed to fetch ${collectionName} data from Firestore.`,
+        description: `Failed to fetch ${collectionName} data. Check Firestore rules.`,
         variant: 'destructive',
       });
       return false;
@@ -176,7 +184,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       };
       await setDoc(itemDocRef, newItem);
       
-      setInventory(prev => [...prev, newItem].sort((a, b) => a.id.localeCompare(b.id)));
+      setInventory(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
       return true;
 
     } catch(error) {
@@ -198,7 +206,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             last_updated: new Date().toISOString(),
         };
         await updateDoc(itemDocRef, updatedItem);
-        setInventory(prev => prev.map(item => item.id === itemData.id ? updatedItem : item));
+        setInventory(prev => prev.map(item => item.id === itemData.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
         return true;
     } catch (error) {
         console.error('Error editing item:', error);
@@ -287,7 +295,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addCategory = async (name: string): Promise<boolean> => {
     try {
         const docRef = await addDoc(collection(db, 'categories'), { name });
-        setCategories(prev => [...prev, { id: docRef.id, name }]);
+        setCategories(prev => [...prev, { id: docRef.id, name }].sort((a,b) => a.name.localeCompare(b.name)));
         return true;
     } catch (error) {
         console.error('Error adding category:', error);
@@ -311,7 +319,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addUnit = async (name: string): Promise<boolean> => {
       try {
           const docRef = await addDoc(collection(db, 'units'), { name });
-          setUnits(prev => [...prev, { id: docRef.id, name }]);
+          setUnits(prev => [...prev, { id: docRef.id, name }].sort((a,b) => a.name.localeCompare(b.name)));
           return true;
       } catch (error) {
           console.error('Error adding unit:', error);
@@ -332,12 +340,88 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
   };
 
+  const addItemToPickingList = (item: InventoryItem) => {
+    setPickingList(prev => {
+      const existingItem = prev.find(pi => pi.id === item.id);
+      if (existingItem) {
+        return prev.map(pi => pi.id === item.id ? { ...pi, quantity: Math.min(pi.quantity + 1, item.quantity) } : pi);
+      }
+      return [...prev, { ...item, quantity: 1 }];
+    });
+  };
+
+  const removeItemFromPickingList = (itemId: string) => {
+    setPickingList(prev => prev.filter(pi => pi.id !== itemId));
+  };
+
+  const updatePickingListQuantity = (itemId: string, quantity: number) => {
+    const inventoryItem = inventory.find(i => i.id === itemId);
+    if (!inventoryItem) return;
+
+    setPickingList(prev => prev.map(pi => pi.id === itemId ? { ...pi, quantity: Math.max(0, Math.min(quantity, inventoryItem.quantity)) } : pi));
+  };
+
+  const processPickingList = async () => {
+    if (pickingList.length === 0) {
+      toast({ title: 'Daftar Kosong', description: 'Tidak ada item untuk diproses.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+        await runTransaction(db, async (transaction) => {
+            for (const pickedItem of pickingList) {
+                const itemDocRef = doc(db, 'inventory', pickedItem.id);
+                const itemDoc = await transaction.get(itemDocRef);
+
+                if (!itemDoc.exists()) {
+                    throw new Error(`Item ${pickedItem.name} tidak ditemukan.`);
+                }
+
+                const currentQuantity = itemDoc.data().quantity;
+                const newQuantity = currentQuantity - pickedItem.quantity;
+
+                if (newQuantity < 0) {
+                    throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
+                }
+
+                transaction.update(itemDocRef, {
+                    quantity: newQuantity,
+                    last_updated: new Date().toISOString()
+                });
+            }
+        });
+
+        // Update local state after successful transaction
+        const updatedInventory = [...inventory];
+        pickingList.forEach(pickedItem => {
+            const index = updatedInventory.findIndex(invItem => invItem.id === pickedItem.id);
+            if (index !== -1) {
+                updatedInventory[index].quantity -= pickedItem.quantity;
+                updatedInventory[index].last_updated = new Date().toISOString();
+            }
+        });
+        setInventory(updatedInventory);
+        setPickingList([]); // Clear the picking list
+        toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
+
+    } catch (error: any) {
+        console.error("Error processing picking list: ", error);
+        toast({
+            title: 'Error',
+            description: error.message || 'Gagal memproses pengambilan.',
+            variant: 'destructive',
+        });
+    }
+    setLoading(false);
+  };
+
   const value = {
     role,
     setRole,
     inventory,
     categories,
     units,
+    pickingList,
     addItem,
     editItem,
     reduceStock,
@@ -346,24 +430,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     deleteCategory,
     addUnit,
     deleteUnit,
+    addItemToPickingList,
+    removeItemFromPickingList,
+    updatePickingListQuantity,
+    processPickingList,
     loading,
     user,
   };
   
-  // Render children only when not on the login page or when auth is determined
   const isLoginPage = pathname === '/login';
   if (loading && !isLoginPage) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
   
   if (!user && !isLoginPage) {
-    return null; // Don't render protected pages if not logged in
+    return null;
   }
 
   if(user && isLoginPage) {
-    return null; // Don't render login page if logged in
+    return null;
   }
-
 
   return (
     <AppContext.Provider value={value}>

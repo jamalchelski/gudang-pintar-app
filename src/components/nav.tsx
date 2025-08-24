@@ -12,7 +12,7 @@ import {
   ArrowRightLeft,
   FileDown,
   PackageSearch,
-  Users,
+  ShoppingCart,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ interface NavProps {
 const adminNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
+  { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
   { href: '/reorder', label: 'Reorder', icon: PackageSearch },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
@@ -32,6 +33,7 @@ const adminNavItems = [
 const userNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
+  { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
 ];
 
 export function Nav({ role }: NavProps) {

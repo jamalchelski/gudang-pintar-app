@@ -1,3 +1,4 @@
+
 export type InventoryItem = {
   id: string;
   name: string;
@@ -9,6 +10,10 @@ export type InventoryItem = {
   max_stock: number;
   last_updated: string;
   image: string;
+};
+
+export type PickingListItem = InventoryItem & {
+  // quantity in this context is the amount to be picked
 };
 
 export type UserRole = 'admin' | 'user';

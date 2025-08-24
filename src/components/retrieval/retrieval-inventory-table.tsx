@@ -1,0 +1,104 @@
+
+'use client';
+
+import React, { useState, useContext, useMemo } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { InventoryItem } from '@/lib/types';
+import { AppContext } from '@/contexts/app-provider';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import { ScrollArea } from '../ui/scroll-area';
+
+export function RetrievalInventoryTable() {
+  const [filter, setFilter] = useState('');
+  const { inventory, addItemToPickingList, pickingList } = useContext(AppContext);
+
+  const availableInventory = useMemo(() => {
+    // Filter out items with 0 quantity
+    return inventory.filter(item => item.quantity > 0);
+  }, [inventory]);
+
+  const filteredData = useMemo(() => {
+    if (!filter) return availableInventory;
+    return availableInventory.filter(
+      item =>
+        item.name.toLowerCase().includes(filter.toLowerCase()) ||
+        item.brand.toLowerCase().includes(filter.toLowerCase()) ||
+        item.category.toLowerCase().includes(filter.toLowerCase()) ||
+        item.id.toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [availableInventory, filter]);
+
+  const isItemInList = (itemId: string) => {
+    return pickingList.some(item => item.id === itemId);
+  };
+
+  return (
+    <div className="bg-card rounded-lg shadow-sm">
+      <div className="p-4">
+        <Input
+          placeholder="Cari item berdasarkan nama, merek, kategori, atau SKU..."
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+      <ScrollArea className="h-[60vh]">
+        <Table>
+          <TableHeader className="sticky top-0 bg-card z-10">
+            <TableRow>
+              <TableHead>Nama Item</TableHead>
+              <TableHead>SKU</TableHead>
+              <TableHead className="text-right">Stok</TableHead>
+              <TableHead>
+                <span className="sr-only">Aksi</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData.length > 0 ? (
+              filteredData.map(item => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <div className="font-medium">{item.name}</div>
+                    <div className="text-sm text-muted-foreground">{item.brand}</div>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-bold">{item.quantity}</span>
+                    <span className="text-muted-foreground"> {item.unit}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addItemToPickingList(item)}
+                      disabled={isItemInList(item.id)}
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Tambah
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  Tidak ada item ditemukan.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
+    </div>
+  );
+}
