@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -40,7 +41,7 @@ export function Nav({ role }: NavProps) {
     <SidebarMenu>
       {navItems.map(item => (
         <SidebarMenuItem key={item.href}>
-          <Link href={item.href} passHref legacyBehavior>
+          <Link href={item.href}>
             <SidebarMenuButton
               isActive={pathname === item.href}
               className={cn(
