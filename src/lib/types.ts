@@ -16,6 +16,10 @@ export type PickingListItem = InventoryItem & {
   // quantity in this context is the amount to be picked
 };
 
+export type ReceivingItem = InventoryItem & {
+  // quantity in this context is the amount to be received
+};
+
 export type UserRole = 'admin' | 'user';
 
 export type Category = {
@@ -48,6 +52,7 @@ export type IncomingLog = {
     user: string;
     timestamp: string;
     poNumber?: string;
+    vendor?: string;
 }
 
 export type StockTakeItemDetail = {

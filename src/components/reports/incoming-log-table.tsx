@@ -55,6 +55,7 @@ export function IncomingLogTable() {
         'Item Name': log.itemName,
         Type: log.type,
         'PO Number': log.poNumber || '-',
+        'Vendor': log.vendor || '-',
         'Quantity Added': log.quantityAdded,
         'New Quantity': log.newQuantity,
         User: log.user,
@@ -84,7 +85,7 @@ export function IncomingLogTable() {
                 <TableRow>
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Nama Item</TableHead>
-                <TableHead>No. PO</TableHead>
+                <TableHead>No. PO / Vendor</TableHead>
                 <TableHead>Tipe</TableHead>
                 <TableHead className="text-right">Jumlah Ditambah</TableHead>
                 <TableHead className="text-right">Stok Baru</TableHead>
@@ -100,7 +101,10 @@ export function IncomingLogTable() {
                         <div className="font-medium">{log.itemName}</div>
                         <div className="text-sm text-muted-foreground font-mono">{log.itemId}</div>
                     </TableCell>
-                    <TableCell>{log.poNumber || '-'}</TableCell>
+                     <TableCell>
+                        <div className="font-medium">{log.poNumber || '-'}</div>
+                        <div className="text-sm text-muted-foreground">{log.vendor || '-'}</div>
+                    </TableCell>
                     <TableCell>
                         {getTypeBadge(log.type)}
                     </TableCell>

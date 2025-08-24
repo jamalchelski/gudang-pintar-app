@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import {
   Table,
   TableBody,
@@ -11,17 +11,33 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { InventoryItem } from '@/lib/types';
+import { InventoryItem, ReceivingItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ArchiveRestore } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { AppContext } from '@/contexts/app-provider';
-import { ReceiveStockDialog } from './receive-stock-dialog';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '../ui/label';
 
-export function ReceivingInventoryTable() {
-  const { inventory } = React.useContext(AppContext);
+
+interface ReceivingInventoryTableProps {
+    onAddItem: (item: ReceivingItem) => void;
+}
+
+export function ReceivingInventoryTable({ onAddItem }: ReceivingInventoryTableProps) {
+  const { inventory } = useContext(AppContext);
+  const { toast } = useToast();
   const [filter, setFilter] = useState('');
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const filteredData = useMemo(() => {
@@ -35,9 +51,27 @@ export function ReceivingInventoryTable() {
     );
   }, [inventory, filter]);
 
-  const handleReceiveClick = (item: InventoryItem) => {
+  const handleAddClick = (item: InventoryItem) => {
     setSelectedItem(item);
+    setQuantity(1);
     setIsDialogOpen(true);
+  }
+
+  const handleConfirmAdd = () => {
+    if (!selectedItem || quantity <= 0) {
+        toast({
+            title: 'Jumlah tidak valid',
+            description: 'Jumlah harus lebih besar dari nol.',
+            variant: 'destructive'
+        })
+        return;
+    };
+    onAddItem({ ...selectedItem, quantity });
+    toast({
+        title: 'Item Ditambahkan',
+        description: `${quantity} x ${selectedItem.name} ditambahkan ke daftar penerimaan.`
+    })
+    setIsDialogOpen(false);
   }
 
   return (
@@ -45,13 +79,13 @@ export function ReceivingInventoryTable() {
     <div className="bg-card rounded-lg shadow-sm">
       <div className="p-4">
         <Input
-          placeholder="Cari item berdasarkan nama, merek, kategori, atau SKU..."
+          placeholder="Cari item untuk ditambahkan..."
           value={filter}
           onChange={e => setFilter(e.target.value)}
           className="max-w-sm"
         />
       </div>
-      <ScrollArea className="h-[70vh]">
+      <ScrollArea className="h-[60vh]">
         <Table>
           <TableHeader className="sticky top-0 bg-card z-10">
             <TableRow>
@@ -80,10 +114,10 @@ export function ReceivingInventoryTable() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleReceiveClick(item)}
+                      onClick={() => handleAddClick(item)}
                     >
-                      <ArchiveRestore className="mr-2 h-4 w-4" />
-                      Terima Stok
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Tambah
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -99,13 +133,28 @@ export function ReceivingInventoryTable() {
         </Table>
       </ScrollArea>
     </div>
-     {selectedItem && (
-        <ReceiveStockDialog
-            isOpen={isDialogOpen}
-            setIsOpen={setIsDialogOpen}
-            item={selectedItem}
-        />
-    )}
+     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Masukkan Jumlah untuk: {selectedItem?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+                <Label htmlFor="quantity">Jumlah Diterima</Label>
+                <Input 
+                    id="quantity"
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    min="1"
+                    className="mt-2"
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
+                <Button onClick={handleConfirmAdd}>Tambah ke Daftar</Button>
+            </DialogFooter>
+        </DialogContent>
+     </Dialog>
     </>
   );
 }

@@ -2,13 +2,14 @@
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { InventoryItem, UserRole, Category, Unit, PickingListItem, RetrievalLog, IncomingLog, StockTakeLog, StockTakeItemDetail } from '@/lib/types';
+import { InventoryItem, UserRole, Category, Unit, PickingListItem, RetrievalLog, IncomingLog, StockTakeLog, StockTakeItemDetail, ReceivingItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentReference, query, orderBy } from 'firebase/firestore';
-import { db, auth, seedAuth } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
+import { PoData } from '@/components/receiving/create-po-form';
 
 type OmitOnAdd = Omit<InventoryItem, 'last_updated' | 'image'>;
 
@@ -37,6 +38,7 @@ interface AppContextType {
   processPickingList: (poNumber?: string) => Promise<void>;
   importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
   submitStockTake: (counts: Record<string, number>) => Promise<boolean>;
+  receiveItemsForPo: (poData: PoData, items: ReceivingItem[]) => Promise<boolean>;
   loading: boolean;
   user: User | null;
 }
@@ -65,6 +67,7 @@ export const AppContext = createContext<AppContextType>({
   processPickingList: async () => {},
   importInventory: async () => false,
   submitStockTake: async () => false,
+  receiveItemsForPo: async () => false,
   loading: true,
   user: null,
 });
@@ -81,41 +84,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [stockTakeLogs, setStockTakeLogs] = useState<StockTakeLog[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
 
    useEffect(() => {
-    const initialize = async () => {
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setLoading(true);
-        if (currentUser) {
-          setUser(currentUser);
-          const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
-          setRole(userRole);
-          if (pathname === '/login') {
-            router.push('/');
-          }
-        } else {
-          setUser(null);
-          setRole('user');
-          if (pathname !== '/login') {
-            router.push('/login');
-          }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setLoading(true);
+      if (currentUser) {
+        setUser(currentUser);
+        const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
+        setRole(userRole);
+        if (pathname === '/login') {
+          router.push('/');
         }
-        setTimeout(() => setLoading(false), 50); 
-      });
-       setInitialized(true);
-      return () => unsubscribe();
-    };
-    if (!initialized) {
+      } else {
+        setUser(null);
+        setRole('user');
         if (pathname !== '/login') {
-            seedAuth();
+          router.push('/login');
         }
-        initialize();
-    }
-  }, [router, pathname, initialized]);
+      }
+      setTimeout(() => setLoading(false), 50); 
+    });
+    return () => unsubscribe();
+  }, [router, pathname]);
 
 
   const fetchCollection = useCallback(
@@ -127,7 +120,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     ) => {
     try {
       const collectionRef = collection(db, collectionName);
-      let snapshot = await getDocs(collectionRef);
+      let snapshot = await getDocs(query(collectionRef));
       
       if (snapshot.empty && shouldSeed) {
         console.log(`Seeding ${collectionName}...`)
@@ -137,7 +130,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           batch.set(docRef, item);
         });
         await batch.commit();
-         snapshot = await getDocs(collectionRef);
+         snapshot = await getDocs(query(collectionRef));
       }
       
       let data = snapshot.docs.map(
@@ -462,56 +455,55 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setLoading(true);
+    
     try {
-        const newLogs: RetrievalLog[] = [];
-        const itemsToUpdate: { ref: DocumentReference; newQuantity: number }[] = [];
+      const itemReads: Promise<{ id: string; doc: any }>[] = [];
+      for (const pickedItem of pickingList) {
+        const itemDocRef = doc(db, 'inventory', pickedItem.id);
+        itemReads.push(getDoc(itemDocRef).then(doc => ({ id: pickedItem.id, doc })));
+      }
+      const itemDocs = await Promise.all(itemReads);
 
-        await runTransaction(db, async (transaction) => {
-            for (const pickedItem of pickingList) {
-                const itemDocRef = doc(db, 'inventory', pickedItem.id);
-                const itemDoc = await transaction.get(itemDocRef);
-                if (!itemDoc.exists()) throw new Error(`Item ${pickedItem.name} tidak ditemukan.`);
-                const currentQuantity = itemDoc.data().quantity;
-                const newQuantity = currentQuantity - pickedItem.quantity;
-                if (newQuantity < 0) throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
-                itemsToUpdate.push({ ref: itemDocRef, newQuantity });
-            }
+      await runTransaction(db, async (transaction) => {
+        for (const { id, doc: itemDoc } of itemDocs) {
+          if (!itemDoc.exists()) throw new Error(`Item dengan ID ${id} tidak ditemukan.`);
+          const pickedItem = pickingList.find(p => p.id === id)!;
+          const currentQuantity = itemDoc.data().quantity;
+          if (currentQuantity < pickedItem.quantity) {
+            throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
+          }
+        }
+        
+        for (const pickedItem of pickingList) {
+            const itemDocRef = doc(db, 'inventory', pickedItem.id);
+            const itemDoc = await transaction.get(itemDocRef);
+            const currentQuantity = itemDoc.data()!.quantity;
+            const newQuantity = currentQuantity - pickedItem.quantity;
+            
+            transaction.update(itemDocRef, {
+                quantity: newQuantity,
+                last_updated: new Date().toISOString()
+            });
 
-            for (const { ref, newQuantity } of itemsToUpdate) {
-                const pickedItem = pickingList.find(p => p.id === ref.id)!;
-                transaction.update(ref, {
-                    quantity: newQuantity,
-                    last_updated: new Date().toISOString()
-                });
-                
-                const logEntry: Omit<RetrievalLog, 'id'> = {
-                    itemId: pickedItem.id,
-                    itemName: pickedItem.name,
-                    quantityRetrieved: pickedItem.quantity,
-                    user: user.email ?? 'unknown',
-                    timestamp: new Date().toISOString(),
-                    ...(poNumber && { poNumber })
-                };
+            const logEntry: Omit<RetrievalLog, 'id'> = {
+                itemId: pickedItem.id,
+                itemName: pickedItem.name,
+                quantityRetrieved: pickedItem.quantity,
+                user: user.email ?? 'unknown',
+                timestamp: new Date().toISOString(),
+                ...(poNumber && { poNumber })
+            };
 
-                const logRef = doc(collection(db, "retrieval_logs"));
-                transaction.set(logRef, logEntry);
-                newLogs.push({ ...logEntry, id: logRef.id });
-            }
-        });
+            const logRef = doc(collection(db, "retrieval_logs"));
+            transaction.set(logRef, logEntry);
+        }
+      });
+      
+      const newLogs = await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
+      const newInventory = await fetchCollection('inventory', setInventory, [], false);
+      setPickingList([]);
 
-        const updatedInventory = [...inventory];
-        pickingList.forEach(pickedItem => {
-            const index = updatedInventory.findIndex(invItem => invItem.id === pickedItem.id);
-            if (index !== -1) {
-                updatedInventory[index].quantity -= pickedItem.quantity;
-                updatedInventory[index].last_updated = new Date().toISOString();
-            }
-        });
-        setInventory(updatedInventory);
-        setPickingList([]);
-        setRetrievalLogs(prev => [...newLogs, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
-
-        toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
+      toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
 
     } catch (error: any) {
         console.error("Error processing picking list: ", error);
@@ -529,7 +521,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const batch = writeBatch(db);
-      const newLogs: IncomingLog[] = [];
       const updatedInventory = [...inventory];
 
       for (const item of items) {
@@ -643,6 +634,67 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const receiveItemsForPo = async (poData: PoData, items: ReceivingItem[]): Promise<boolean> => {
+    if (!user) return false;
+    setLoading(true);
+    try {
+        await runTransaction(db, async (transaction) => {
+            for (const receivedItem of items) {
+                const itemRef = doc(db, 'inventory', receivedItem.id);
+                const itemDoc = await transaction.get(itemRef);
+
+                if (!itemDoc.exists()) {
+                    throw new Error(`Item dengan SKU ${receivedItem.id} tidak ditemukan di inventaris.`);
+                }
+
+                const currentQuantity = itemDoc.data().quantity;
+                const newQuantity = currentQuantity + receivedItem.quantity;
+                
+                transaction.update(itemRef, {
+                    quantity: newQuantity,
+                    last_updated: new Date().toISOString()
+                });
+
+                const logEntry: Omit<IncomingLog, 'id'> = {
+                    itemId: receivedItem.id,
+                    itemName: receivedItem.name,
+                    quantityAdded: receivedItem.quantity,
+                    newQuantity: newQuantity,
+                    type: 'receiving',
+                    user: user.email ?? 'unknown',
+                    timestamp: new Date().toISOString(),
+                    poNumber: poData.poNumber,
+                    vendor: poData.vendor
+                };
+
+                const logRef = doc(collection(db, "incoming_logs"));
+                transaction.set(logRef, logEntry);
+            }
+        });
+
+        // Refetch data to update UI state
+        await fetchCollection('inventory', setInventory, [], false);
+        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+        
+        toast({
+            title: "Penerimaan Berhasil",
+            description: `${items.length} jenis item untuk PO ${poData.poNumber} berhasil disimpan.`
+        });
+        setLoading(false);
+        return true;
+
+    } catch (error: any) {
+        console.error("Error receiving items:", error);
+        toast({
+            title: "Error Penerimaan",
+            description: error.message || 'Gagal menyimpan data penerimaan.',
+            variant: 'destructive'
+        });
+        setLoading(false);
+        return false;
+    }
+  }
+
   const value = {
     role,
     setRole,
@@ -667,20 +719,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     processPickingList,
     importInventory,
     submitStockTake,
+    receiveItemsForPo,
     loading,
     user,
   };
   
-  const isLoginPage = pathname === '/login';
-  if (loading && !isLoginPage && !initialized) {
+  if (loading && pathname !== '/login') {
     return <div className="flex h-screen items-center justify-center">Memuat Aplikasi...</div>;
   }
   
-  if (!user && !isLoginPage) {
+  if (!user && pathname !== '/login') {
     return null;
   }
 
-  if(user && isLoginPage) {
+  if(user && pathname === '/login') {
+      router.push('/');
     return <div className="flex h-screen items-center justify-center">Mengalihkan...</div>;
   }
 
