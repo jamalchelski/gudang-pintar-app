@@ -637,15 +637,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
         await runTransaction(db, async (transaction) => {
-            for (const receivedItem of items) {
-                const itemRef = doc(db, 'inventory', receivedItem.id);
-                const itemDoc = await transaction.get(itemRef);
+            // 1. Read Phase
+            const itemDocs = await Promise.all(
+                items.map(item => transaction.get(doc(db, 'inventory', item.id)))
+            );
 
-                if (!itemDoc.exists()) {
-                    throw new Error(`Item dengan SKU ${receivedItem.id} tidak ditemukan di inventaris.`);
+            // 2. Validation Phase
+            for(const [index, itemDoc] of itemDocs.entries()) {
+                 if (!itemDoc.exists()) {
+                    throw new Error(`Item dengan SKU ${items[index].id} tidak ditemukan di inventaris.`);
                 }
+            }
 
-                const currentQuantity = itemDoc.data().quantity;
+            // 3. Write Phase
+            for (const [index, receivedItem] of items.entries()) {
+                const itemRef = doc(db, 'inventory', receivedItem.id);
+                const currentQuantity = itemDocs[index].data()!.quantity;
                 const newQuantity = currentQuantity + receivedItem.quantity;
                 
                 transaction.update(itemRef, {
