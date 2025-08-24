@@ -35,6 +35,7 @@ interface AppContextType {
   updatePickingListQuantity: (itemId: string, quantity: number) => void;
   processPickingList: () => Promise<void>;
   importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
+  submitStockTake: (counts: Record<string, number>) => Promise<boolean>;
   loading: boolean;
   user: User | null;
 }
@@ -61,6 +62,7 @@ export const AppContext = createContext<AppContextType>({
   updatePickingListQuantity: () => {},
   processPickingList: async () => {},
   importInventory: async () => false,
+  submitStockTake: async () => false,
   loading: true,
   user: null,
 });
@@ -548,6 +550,42 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+        const batch = writeBatch(db);
+        const updatedInventory = [...inventory];
+
+        for (const [itemId, countedQuantity] of Object.entries(counts)) {
+            const itemRef = doc(db, 'inventory', itemId);
+            batch.update(itemRef, {
+                quantity: countedQuantity,
+                last_updated: new Date().toISOString(),
+            });
+
+            // Update local state
+            const itemIndex = updatedInventory.findIndex(item => item.id === itemId);
+            if (itemIndex > -1) {
+                updatedInventory[itemIndex].quantity = countedQuantity;
+                updatedInventory[itemIndex].last_updated = new Date().toISOString();
+            }
+        }
+        await batch.commit();
+        setInventory(updatedInventory);
+
+        return true;
+    } catch (error) {
+        console.error("Error submitting stock take:", error);
+        toast({
+            title: 'Error',
+            description: 'Gagal mengirimkan hasil stock take.',
+            variant: 'destructive',
+        });
+        return false;
+    }
+  };
+
   const value = {
     role,
     setRole,
@@ -570,6 +608,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   updatePickingListQuantity,
     processPickingList,
     importInventory,
+    submitStockTake,
     loading,
     user,
   };

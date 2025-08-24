@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import {
   Table,
   TableBody,
@@ -13,13 +14,22 @@ import { Input } from '@/components/ui/input';
 import { AppContext } from '@/contexts/app-provider';
 import { InventoryItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
 
-export function StockTakeTable() {
+interface StockTakeTableProps {
+    counts: Record<string, number | string>;
+    setCounts: React.Dispatch<React.SetStateAction<Record<string, string | number>>>;
+}
+
+export function StockTakeTable({ counts, setCounts }: StockTakeTableProps) {
   const { inventory } = useContext(AppContext);
-  const [counts, setCounts] = useState<Record<string, number | string>>({});
 
   const handleCountChange = (itemId: string, value: string) => {
-    setCounts(prev => ({ ...prev, [itemId]: value }));
+    // Allow empty string to clear the input, otherwise store as number
+    const numericValue = value === '' ? '' : Number(value);
+    if (numericValue === '' || (!isNaN(numericValue) && numericValue >= 0)) {
+        setCounts(prev => ({ ...prev, [itemId]: numericValue }));
+    }
   };
   
   const getVarianceClass = (item: InventoryItem) => {
@@ -32,9 +42,9 @@ export function StockTakeTable() {
 
   return (
     <div className="bg-card rounded-lg shadow-sm">
-      <div className="overflow-x-auto">
+      <ScrollArea className="h-[70vh]">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 bg-card z-10">
             <TableRow>
               <TableHead>Item Name</TableHead>
               <TableHead>SKU</TableHead>
@@ -63,6 +73,7 @@ export function StockTakeTable() {
                       placeholder="Enter count"
                       value={counts[item.id] || ''}
                       onChange={e => handleCountChange(item.id, e.target.value)}
+                      min="0"
                     />
                   </TableCell>
                   <TableCell className={cn("text-right font-bold", getVarianceClass(item))}>
@@ -73,7 +84,7 @@ export function StockTakeTable() {
             })}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
