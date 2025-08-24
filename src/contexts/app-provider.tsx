@@ -539,46 +539,78 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
     if (!user || role !== 'admin') {
-      toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
-      return false;
-    };
-    setLoading(true);
-    try {
-      const batch = writeBatch(db);
-      const updatedInventory = [...inventory];
-
-      for (const item of items) {
-        const docRef = doc(db, 'inventory', item.id);
-        const newItem: InventoryItem = {
-          ...item,
-          last_updated: new Date().toISOString(),
-        };
-        batch.set(docRef, newItem, { merge: true });
-
-        const existingIndex = updatedInventory.findIndex(i => i.id === item.id);
-        if (existingIndex > -1) {
-          updatedInventory[existingIndex] = newItem;
-        } else {
-          updatedInventory.push(newItem);
-        }
-      }
-
-      await batch.commit();
-      setInventory(updatedInventory.sort((a,b) => a.name.localeCompare(b.name)));
-      
-      setLoading(false);
-      return true;
-    } catch (error) {
-      console.error('Error importing inventory:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to import inventory data.',
-        variant: 'destructive',
-      });
-      setLoading(false);
-      return false;
+        toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
+        return false;
     }
-  }
+    setLoading(true);
+    const updatedInventory = [...inventory];
+    const newLogs: Omit<IncomingLog, 'id'>[] = [];
+
+    try {
+        const allItemIds = items.map(i => i.id);
+        const existingDocsPromises = allItemIds.map(id => getDoc(doc(db, 'inventory', id)));
+        const existingDocs = await Promise.all(existingDocsPromises);
+        const existingItems = new Map(existingDocs.filter(d => d.exists()).map(d => [d.id, d.data() as InventoryItem]));
+
+        const chunks: Omit<InventoryItem, 'last_updated'>[][] = [];
+        for (let i = 0; i < items.length; i += 400) {
+            chunks.push(items.slice(i, i + 400));
+        }
+
+        for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            for (const item of chunk) {
+                const docRef = doc(db, 'inventory', item.id);
+                const newItem: InventoryItem = {
+                    ...item,
+                    last_updated: new Date().toISOString(),
+                };
+                batch.set(docRef, newItem, { merge: true });
+
+                const existingItem = existingItems.get(item.id);
+                const quantityAdded = existingItem ? newItem.quantity - existingItem.quantity : newItem.quantity;
+
+                if (quantityAdded !== 0) {
+                     const logEntry: Omit<IncomingLog, 'id'> = {
+                        itemId: newItem.id,
+                        itemName: newItem.name,
+                        quantityAdded: quantityAdded,
+                        newQuantity: newItem.quantity,
+                        type: existingItem ? 'stock_update' : 'new_item',
+                        user: user.email ?? 'unknown',
+                        timestamp: new Date().toISOString(),
+                        poNumber: 'IMPORT',
+                    };
+                    const logRef = doc(collection(db, 'incoming_logs'));
+                    batch.set(logRef, logEntry);
+                }
+
+                const existingIndex = updatedInventory.findIndex(i => i.id === item.id);
+                if (existingIndex > -1) {
+                    updatedInventory[existingIndex] = newItem;
+                } else {
+                    updatedInventory.push(newItem);
+                }
+            }
+            await batch.commit();
+        }
+
+        await fetchCollection('inventory', setInventory, [], false);
+        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+
+        setLoading(false);
+        return true;
+    } catch (error) {
+        console.error('Error importing inventory:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to import inventory data.',
+            variant: 'destructive',
+        });
+        setLoading(false);
+        return false;
+    }
+};
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
     if (!user || role !== 'admin') {
@@ -772,3 +804,5 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     </AppContext.Provider>
   );
 };
+
+    
