@@ -27,7 +27,6 @@ const adminNavItems = [
   { href: '/reorder', label: 'Reorder', icon: PackageSearch },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
-  { href: '/user-management', label: 'User Management', icon: Users },
 ];
 
 const userNavItems = [
