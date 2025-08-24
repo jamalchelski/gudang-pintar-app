@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Label } from '../ui/label';
 
@@ -137,6 +138,9 @@ export function ReceivingInventoryTable({ onAddItem }: ReceivingInventoryTablePr
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Masukkan Jumlah untuk: {selectedItem?.name}</DialogTitle>
+                <DialogDescription>
+                    Masukkan jumlah barang yang diterima untuk item ini.
+                </DialogDescription>
             </DialogHeader>
             <div className="py-4">
                 <Label htmlFor="quantity">Jumlah Diterima</Label>
