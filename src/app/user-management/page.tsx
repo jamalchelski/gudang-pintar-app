@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal } from 'lucide-react';
@@ -21,6 +22,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { AddUserDialog } from '@/components/user/add-user-dialog';
 
 // Mock data for users
 const users = [
@@ -51,10 +53,19 @@ const users = [
 ];
 
 export default function UserManagementPage() {
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+
+  // In a real app, you would fetch and update users.
+  // For now, we just log the new user.
+  const handleUserAdded = (newUser: any) => {
+    console.log('New user would be added:', newUser);
+    // Here you would typically refresh the user list from your backend.
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title="User Management">
-        <Button>
+        <Button onClick={() => setIsAddUserDialogOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add User
         </Button>
@@ -116,6 +127,11 @@ export default function UserManagementPage() {
           </Table>
         </CardContent>
       </Card>
+      <AddUserDialog 
+        isOpen={isAddUserDialogOpen}
+        setIsOpen={setIsAddUserDialogOpen}
+        onUserAdded={handleUserAdded}
+      />
     </div>
   );
 }
