@@ -1,15 +1,17 @@
 
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, BrainCircuit, AlertTriangle, PackageX, PackageCheck, TrendingUp, Zap } from 'lucide-react';
+import { Loader2, BrainCircuit, AlertTriangle, PackageX, PackageCheck, TrendingUp, Zap, FileDown } from 'lucide-react';
 import { AppContext } from '@/contexts/app-provider';
 import { analyzeStock, StockAnalysis } from '@/ai/flows/analyze-stock-flow';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 
 export default function AnalysisPage() {
@@ -17,6 +19,7 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<StockAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -42,6 +45,32 @@ export default function AnalysisPage() {
     setLoading(false);
   };
   
+    const handleExportPdf = async () => {
+        if (!reportRef.current) return;
+        setLoading(true);
+        try {
+            const canvas = await html2canvas(reportRef.current, {
+                 scale: 2, // Higher scale for better quality
+                 useCORS: true,
+                 backgroundColor: null,
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`laporan-analisis-stok-${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (error) {
+            console.error("Error exporting PDF:", error);
+            setError("Gagal mengekspor laporan ke PDF.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
   if (role !== 'admin') {
       return (
            <Alert variant="destructive">
@@ -63,6 +92,12 @@ export default function AnalysisPage() {
           )}
           {loading ? 'Analyzing...' : 'Analyze Full Inventory'}
         </Button>
+        {analysis && (
+             <Button onClick={handleExportPdf} disabled={loading} variant="outline">
+                <FileDown className="mr-2 h-4 w-4" />
+                Export to PDF
+             </Button>
+        )}
       </PageHeader>
       
       {!analysis && !loading && (
@@ -86,7 +121,7 @@ export default function AnalysisPage() {
       )}
 
       {analysis && (
-        <div className="grid gap-6">
+        <div className="grid gap-6" ref={reportRef}>
           <Card>
             <CardHeader>
               <CardTitle>Executive Summary</CardTitle>
