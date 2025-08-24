@@ -1,4 +1,4 @@
-import { InventoryItem } from './types';
+import { InventoryItem, Category, Unit } from './types';
 
 export const MOCK_INVENTORY: InventoryItem[] = [
   {
@@ -97,4 +97,22 @@ export const MOCK_INVENTORY: InventoryItem[] = [
     last_updated: '2023-10-26T15:00:00Z',
     image: 'https://placehold.co/400x400.png',
   },
+];
+
+
+export const MOCK_CATEGORIES: Category[] = [
+  { id: 'cat-001', name: 'Suku Cadang Mesin' },
+  { id: 'cat-002', name: 'Pelumas' },
+  { id: 'cat-003', name: 'Filter' },
+  { id: 'cat-004', name: 'Sistem Pengereman' },
+  { id: 'cat-005', name: 'Kelistrikan' },
+  { id: 'cat-006', name: 'Suku Cadang Roda' },
+];
+
+export const MOCK_UNITS: Unit[] = [
+  { id: 'unit-001', name: 'pcs' },
+  { id: 'unit-002', name: 'box' },
+  { id: 'unit-003', name: 'liter' },
+  { id: 'unit-004', name: 'kg' },
+  { id: 'unit-005', name: 'set' },
 ];

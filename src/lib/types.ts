@@ -2,7 +2,7 @@ export type InventoryItem = {
   id: string;
   name: string;
   brand: string;
-  unit: 'pcs' | 'box' | 'liter' | 'kg' | 'set';
+  unit: string;
   category: string;
   quantity: number;
   min_stock: number;
@@ -12,3 +12,13 @@ export type InventoryItem = {
 };
 
 export type UserRole = 'admin' | 'user';
+
+export type Category = {
+  id: string;
+  name: string;
+};
+
+export type Unit = {
+  id: string;
+  name: string;
+};

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useContext, useMemo } from 'react';
@@ -14,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ReduceStockDialog } from './reduce-stock-dialog';
+import { EditItemDialog } from './edit-item-dialog';
 
 interface InventoryTableProps {
   data: InventoryItem[];
@@ -33,7 +35,8 @@ interface InventoryTableProps {
 export function InventoryTable({ data }: InventoryTableProps) {
   const [filter, setFilter] = useState('');
   const { role } = useContext(AppContext);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [reduceStockDialogOpen, setReduceStockDialogOpen] = useState(false);
+  const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   const filteredData = useMemo(() => {
@@ -47,9 +50,15 @@ export function InventoryTable({ data }: InventoryTableProps) {
     );
   }, [data, filter]);
 
-  const handleReduceStock = (item: InventoryItem) => {
+  const handleActionClick = (item: InventoryItem, action: 'reduce' | 'edit' | 'delete') => {
     setSelectedItem(item);
-    setDialogOpen(true);
+    if (action === 'reduce') {
+      setReduceStockDialogOpen(true);
+    } else if (action === 'edit') {
+      setEditItemDialogOpen(true);
+    } else {
+        // TODO: Implement delete
+    }
   };
 
   const getStockStatus = (item: InventoryItem) => {
@@ -118,15 +127,19 @@ export function InventoryTable({ data }: InventoryTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleReduceStock(item)}>
+                        <DropdownMenuItem onClick={() => handleActionClick(item, 'reduce')}>
                           Reduce Stock
                         </DropdownMenuItem>
                         {role === 'admin' && (
                           <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>Edit Item</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              Delete Item
+                            <DropdownMenuItem onClick={() => handleActionClick(item, 'edit')}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit Item
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(item, 'delete')}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Item
                             </DropdownMenuItem>
                           </>
                         )}
@@ -147,8 +160,15 @@ export function InventoryTable({ data }: InventoryTableProps) {
       </div>
       {selectedItem && (
         <ReduceStockDialog
-          isOpen={dialogOpen}
-          setIsOpen={setDialogOpen}
+          isOpen={reduceStockDialogOpen}
+          setIsOpen={setReduceStockDialogOpen}
+          item={selectedItem}
+        />
+      )}
+       {selectedItem && role === 'admin' && (
+        <EditItemDialog
+          isOpen={editItemDialogOpen}
+          setIsOpen={setEditItemDialogOpen}
           item={selectedItem}
         />
       )}

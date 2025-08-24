@@ -1,12 +1,12 @@
 
 'use client';
 
-import React, { createContext, useState, ReactNode, useEffect } from 'react';
-import { InventoryItem, UserRole } from '@/lib/types';
+import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { InventoryItem, UserRole, Category, Unit } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import { MOCK_INVENTORY } from '@/lib/mock-data';
+import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -17,9 +17,16 @@ interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
   inventory: InventoryItem[];
+  categories: Category[];
+  units: Unit[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
+  editItem: (item: InventoryItem) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number) => void;
   updateStock: (itemId: string, newQuantity: number) => void;
+  addCategory: (name: string) => Promise<boolean>;
+  deleteCategory: (id: string) => Promise<boolean>;
+  addUnit: (name: string) => Promise<boolean>;
+  deleteUnit: (id: string) => Promise<boolean>;
   loading: boolean;
   user: User | null;
 }
@@ -28,9 +35,16 @@ export const AppContext = createContext<AppContextType>({
   role: 'user',
   setRole: () => {},
   inventory: [],
+  categories: [],
+  units: [],
   addItem: async () => false,
+  editItem: async () => false,
   reduceStock: () => {},
   updateStock: () => {},
+  addCategory: async () => false,
+  deleteCategory: async () => false,
+  addUnit: async () => false,
+  deleteUnit: async () => false,
   loading: true,
   user: null,
 });
@@ -39,6 +53,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [role, setRole] = useState<UserRole>('user');
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -70,50 +86,74 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [router, pathname]);
 
 
-  useEffect(() => {
-    if (!user) return; // Don't fetch if no user
+  const fetchCollection = useCallback(
+    async <T extends {id: string}>(
+      collectionName: string,
+      setter: React.Dispatch<React.SetStateAction<T[]>>,
+      mockData: T[],
+      shouldSeed: boolean,
+    ) => {
+    try {
+      const collectionRef = collection(db, collectionName);
+      let snapshot = await getDocs(collectionRef);
 
-    const fetchInventory = async () => {
-      setLoading(true);
-      try {
-        const inventoryCollection = collection(db, 'inventory');
-        const snapshot = await getDocs(inventoryCollection);
-        if (snapshot.empty) {
-          // Seed data if the collection is empty
-          const batch = writeBatch(db);
-          MOCK_INVENTORY.forEach(item => {
-            const docRef = doc(inventoryCollection, item.id);
-            batch.set(docRef, item);
-          });
-          await batch.commit();
-          setInventory(MOCK_INVENTORY);
-          toast({
-            title: 'Database Initialized',
-            description: 'Mock inventory data has been added to Firestore.',
-          });
-        } else {
-          const inventoryData = snapshot.docs.map(
-            doc =>
-              ({
-                id: doc.id,
-                ...doc.data(),
-              } as InventoryItem)
-          );
-          setInventory(inventoryData);
-        }
-      } catch (error) {
-        console.error('Error fetching inventory:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch inventory data from Firestore.',
-          variant: 'destructive',
+      if (snapshot.empty && shouldSeed) {
+        const batch = writeBatch(db);
+        mockData.forEach(item => {
+          const docRef = doc(collectionRef, item.id);
+          batch.set(docRef, item);
         });
+        await batch.commit();
+        // After seeding, fetch again
+         snapshot = await getDocs(collectionRef);
       }
+      
+      const data = snapshot.docs.map(
+        doc =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as T)
+      );
+      setter(data);
+
+      return snapshot.empty && shouldSeed;
+
+    } catch (error) {
+      console.error(`Error fetching ${collectionName}:`, error);
+      toast({
+        title: 'Error',
+        description: `Failed to fetch ${collectionName} data from Firestore.`,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchAllData = async () => {
+      setLoading(true);
+      const inventorySnapshot = await getDocs(collection(db, 'inventory'));
+      const shouldSeed = inventorySnapshot.empty;
+      
+      const seeded = await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
+      await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
+      await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
+
+      if(seeded) {
+        toast({
+            title: 'Database Initialized',
+            description: 'Mock data has been added to Firestore.',
+          });
+      }
+
       setLoading(false);
     };
 
-    fetchInventory();
-  }, [toast, user]);
+    fetchAllData();
+  }, [toast, user, fetchCollection]);
 
   const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
     try {
@@ -147,6 +187,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           variant: 'destructive',
       });
       return false;
+    }
+  }
+
+  const editItem = async (itemData: InventoryItem): Promise<boolean> => {
+    try {
+        const itemDocRef = doc(db, 'inventory', itemData.id);
+        const updatedItem = {
+            ...itemData,
+            last_updated: new Date().toISOString(),
+        };
+        await updateDoc(itemDocRef, updatedItem);
+        setInventory(prev => prev.map(item => item.id === itemData.id ? updatedItem : item));
+        return true;
+    } catch (error) {
+        console.error('Error editing item:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to edit item. Admins only.',
+            variant: 'destructive',
+        });
+        return false;
     }
   }
 
@@ -223,13 +284,68 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addCategory = async (name: string): Promise<boolean> => {
+    try {
+        const docRef = await addDoc(collection(db, 'categories'), { name });
+        setCategories(prev => [...prev, { id: docRef.id, name }]);
+        return true;
+    } catch (error) {
+        console.error('Error adding category:', error);
+        toast({ title: 'Error', description: 'Failed to add category.', variant: 'destructive' });
+        return false;
+    }
+  };
+
+  const deleteCategory = async (id: string): Promise<boolean> => {
+      try {
+          await deleteDoc(doc(db, 'categories', id));
+          setCategories(prev => prev.filter(c => c.id !== id));
+          return true;
+      } catch (error) {
+          console.error('Error deleting category:', error);
+          toast({ title: 'Error', description: 'Failed to delete category.', variant: 'destructive' });
+          return false;
+      }
+  };
+  
+  const addUnit = async (name: string): Promise<boolean> => {
+      try {
+          const docRef = await addDoc(collection(db, 'units'), { name });
+          setUnits(prev => [...prev, { id: docRef.id, name }]);
+          return true;
+      } catch (error) {
+          console.error('Error adding unit:', error);
+          toast({ title: 'Error', description: 'Failed to add unit.', variant: 'destructive' });
+          return false;
+      }
+  };
+
+  const deleteUnit = async (id: string): Promise<boolean> => {
+      try {
+          await deleteDoc(doc(db, 'units', id));
+          setUnits(prev => prev.filter(u => u.id !== id));
+          return true;
+      } catch (error) {
+          console.error('Error deleting unit:', error);
+          toast({ title: 'Error', description: 'Failed to delete unit.', variant: 'destructive' });
+          return false;
+      }
+  };
+
   const value = {
     role,
     setRole,
     inventory,
+    categories,
+    units,
     addItem,
+    editItem,
     reduceStock,
     updateStock,
+    addCategory,
+    deleteCategory,
+    addUnit,
+    deleteUnit,
     loading,
     user,
   };

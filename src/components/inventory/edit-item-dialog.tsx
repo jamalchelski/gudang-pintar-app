@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,28 +24,21 @@ import {
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
 
-type OmitOnAdded = Omit<InventoryItem, 'last_updated' | 'image'>;
-
-interface AddItemDialogProps {
+interface EditItemDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  onItemAdded: (item: OmitOnAdded) => Promise<boolean>;
+  item: InventoryItem;
 }
 
-export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogProps) {
+export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps) {
   const { toast } = useToast();
-  const { categories, units } = useContext(AppContext);
+  const { categories, units, editItem } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-      id: '',
-      name: '',
-      brand: '',
-      category: '',
-      unit: '',
-      quantity: 0,
-      min_stock: 0,
-      max_stock: 0,
-  });
+  const [formData, setFormData] = useState<InventoryItem>(item);
+
+  useEffect(() => {
+    setFormData(item);
+  }, [item]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -60,44 +53,15 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
     e.preventDefault();
     setLoading(true);
 
-    if (Object.values(formData).some(val => val === '' || val === null)) {
-        toast({
-            title: 'Error',
-            description: 'Please fill all fields.',
-            variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-    }
-
-    const newItem: OmitOnAdded = {
-        ...formData,
-        quantity: Number(formData.quantity),
-        min_stock: Number(formData.min_stock),
-        max_stock: Number(formData.max_stock)
-    };
-    
-    const success = await onItemAdded(newItem);
+    const success = await editItem(formData);
     
     if (success) {
       toast({
-        title: 'Item Added',
-        description: `Item ${formData.name} has been successfully added.`,
+        title: 'Item Updated',
+        description: `Item ${formData.name} has been successfully updated.`,
       });
       setIsOpen(false);
-      // Reset form
-      setFormData({
-        id: '',
-        name: '',
-        brand: '',
-        category: '',
-        unit: '',
-        quantity: 0,
-        min_stock: 0,
-        max_stock: 0,
-      });
     }
-    // Error toast is handled in the context
     setLoading(false);
   };
 
@@ -106,23 +70,23 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add New Inventory Item</DialogTitle>
+            <DialogTitle>Edit: {item.name}</DialogTitle>
             <DialogDescription>
-              Fill in the details below to add a new item to the inventory.
+              Update the details for this inventory item. SKU cannot be changed.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-2">
               <Label htmlFor="id">SKU / Item ID</Label>
-              <Input id="id" value={formData.id} onChange={handleChange} placeholder="e.g., SKU-009" />
+              <Input id="id" value={formData.id} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="name">Item Name</Label>
-              <Input id="name" value={formData.name} onChange={handleChange} placeholder="e.g., Air Filter" />
+              <Input id="name" value={formData.name} onChange={handleChange} />
             </div>
              <div className="space-y-2">
               <Label htmlFor="brand">Brand</Label>
-              <Input id="brand" value={formData.brand} onChange={handleChange} placeholder="e.g., Sakura" />
+              <Input id="brand" value={formData.brand} onChange={handleChange} />
             </div>
              <div className="space-y-2 col-span-2">
               <Label htmlFor="category">Category</Label>
@@ -168,7 +132,7 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-                {loading ? 'Adding...' : 'Add Item'}
+                {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </form>
