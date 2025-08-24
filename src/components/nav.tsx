@@ -10,10 +10,10 @@ import {
   Boxes,
   ClipboardList,
   ArrowRightLeft,
-  FileDown,
   PackageSearch,
   ShoppingCart,
   FileText,
+  ArchiveRestore,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ const adminNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
   { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
+  { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore },
   { href: '/reorder', label: 'Reorder', icon: PackageSearch },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
