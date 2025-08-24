@@ -26,6 +26,7 @@ interface AppContextType {
   stockTakeLogs: StockTakeLog[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
   editItem: (item: InventoryItem, oldQuantity: number, type?: IncomingLog['type'], poNumber?: string) => Promise<boolean>;
+  deleteItem: (itemId: string) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number, poNumber?: string) => Promise<void>;
   updateStock: (itemId: string, newQuantity: number) => void;
   addCategory: (name: string) => Promise<boolean>;
@@ -55,6 +56,7 @@ export const AppContext = createContext<AppContextType>({
   stockTakeLogs: [],
   addItem: async () => false,
   editItem: async () => false,
+  deleteItem: async () => false,
   reduceStock: async () => {},
   updateStock: () => {},
   addCategory: async () => false,
@@ -283,6 +285,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
   }
+
+  const deleteItem = async (itemId: string): Promise<boolean> => {
+    if (role !== 'admin') {
+        toast({ title: 'Permission Error', description: 'Only admins can delete items.', variant: 'destructive' });
+        return false;
+    }
+    try {
+        await deleteDoc(doc(db, 'inventory', itemId));
+        setInventory(prev => prev.filter(item => item.id !== itemId));
+        toast({ title: 'Item Deleted', description: `Item ${itemId} has been deleted.` });
+        return true;
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        toast({ title: 'Error', description: 'Failed to delete item.', variant: 'destructive' });
+        return false;
+    }
+  };
+
 
   const reduceStock = async (itemId: string, amount: number, poNumber?: string) => {
     if(!user) return;
@@ -766,6 +786,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     stockTakeLogs,
     addItem,
     editItem,
+    deleteItem,
     reduceStock,
     updateStock,
     addCategory,
