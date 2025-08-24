@@ -4,7 +4,7 @@
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { InventoryItem, UserRole, Category, Unit, PickingListItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentSnapshot, DocumentReference } from 'firebase/firestore';
 import { db, auth, seedAuth } from '@/lib/firebase';
 import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
@@ -377,6 +377,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
         await runTransaction(db, async (transaction) => {
+            const itemsToUpdate: { ref: DocumentReference, newQuantity: number }[] = [];
+
+            // 1. Read phase: Read all documents and validate stock
             for (const pickedItem of pickingList) {
                 const itemDocRef = doc(db, 'inventory', pickedItem.id);
                 const itemDoc = await transaction.get(itemDocRef);
@@ -392,7 +395,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                     throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
                 }
 
-                transaction.update(itemDocRef, {
+                itemsToUpdate.push({ ref: itemDocRef, newQuantity });
+            }
+
+            // 2. Write phase: Update all documents
+            for (const { ref, newQuantity } of itemsToUpdate) {
+                transaction.update(ref, {
                     quantity: newQuantity,
                     last_updated: new Date().toISOString()
                 });
