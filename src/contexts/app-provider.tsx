@@ -4,16 +4,20 @@
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { InventoryItem, UserRole } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { collection, doc, getDocs, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { MOCK_INVENTORY } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 
+type OmitOnAdd = Omit<InventoryItem, 'last_updated' | 'image'>;
+
+
 interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
   inventory: InventoryItem[];
+  addItem: (item: OmitOnAdd) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number) => void;
   updateStock: (itemId: string, newQuantity: number) => void;
   loading: boolean;
@@ -24,6 +28,7 @@ export const AppContext = createContext<AppContextType>({
   role: 'user',
   setRole: () => {},
   inventory: [],
+  addItem: async () => false,
   reduceStock: () => {},
   updateStock: () => {},
   loading: true,
@@ -110,6 +115,41 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     fetchInventory();
   }, [toast, user]);
 
+  const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
+    try {
+      const itemDocRef = doc(db, 'inventory', itemData.id);
+
+      const docSnap = await getDoc(itemDocRef);
+      if (docSnap.exists()) {
+        toast({
+            title: 'Error',
+            description: `Item with SKU ${itemData.id} already exists.`,
+            variant: 'destructive',
+        });
+        return false;
+      }
+
+      const newItem: InventoryItem = {
+        ...itemData,
+        image: 'https://placehold.co/400x400.png',
+        last_updated: new Date().toISOString(),
+      };
+      await setDoc(itemDocRef, newItem);
+      
+      setInventory(prev => [...prev, newItem].sort((a, b) => a.id.localeCompare(b.id)));
+      return true;
+
+    } catch(error) {
+      console.error('Error adding item:', error);
+      toast({
+          title: 'Error',
+          description: 'Failed to add new item. Admins only.',
+          variant: 'destructive',
+      });
+      return false;
+    }
+  }
+
   const reduceStock = async (itemId: string, amount: number) => {
     const item = inventory.find(i => i.id === itemId);
     if (!item) return;
@@ -187,6 +227,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     role,
     setRole,
     inventory,
+    addItem,
     reduceStock,
     updateStock,
     loading,
