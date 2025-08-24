@@ -168,7 +168,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const inventorySnapshot = await getDocs(collection(db, 'inventory'));
       const shouldSeed = inventorySnapshot.empty;
       
-      const seeded = await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
+      await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
       await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
       await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
       await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
@@ -176,7 +176,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await fetchCollection('stock_take_logs', setStockTakeLogs, [], false);
 
 
-      if(seeded) {
+      if(shouldSeed) {
         toast({
             title: 'Database Initialized',
             description: 'Mock data has been added to Firestore.',
@@ -543,16 +543,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
     setLoading(true);
-    const updatedInventory = [...inventory];
-    const newLogs: Omit<IncomingLog, 'id'>[] = [];
 
     try {
-        const allItemIds = items.map(i => i.id);
-        const existingDocsPromises = allItemIds.map(id => getDoc(doc(db, 'inventory', id)));
-        const existingDocs = await Promise.all(existingDocsPromises);
-        const existingItems = new Map(existingDocs.filter(d => d.exists()).map(d => [d.id, d.data() as InventoryItem]));
-
-        const chunks: Omit<InventoryItem, 'last_updated'>[][] = [];
+        const existingItemsMap = new Map(inventory.map(item => [item.id, item]));
+        
+        const chunks: typeof items[] = [];
         for (let i = 0; i < items.length; i += 50) {
             chunks.push(items.slice(i, i + 50));
         }
@@ -567,14 +562,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 };
                 batch.set(docRef, newItem, { merge: true });
 
-                const existingItem = existingItems.get(item.id);
-                const quantityAdded = existingItem ? newItem.quantity - existingItem.quantity : newItem.quantity;
+                const existingItem = existingItemsMap.get(item.id);
+                const quantityChange = existingItem ? newItem.quantity - existingItem.quantity : newItem.quantity;
 
-                if (quantityAdded !== 0) {
+                if (quantityChange !== 0) {
                      const logEntry: Omit<IncomingLog, 'id'> = {
                         itemId: newItem.id,
                         itemName: newItem.name,
-                        quantityAdded: quantityAdded,
+                        quantityAdded: quantityChange,
                         newQuantity: newItem.quantity,
                         type: existingItem ? 'stock_update' : 'new_item',
                         user: user.email ?? 'unknown',
@@ -584,22 +579,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                     const logRef = doc(collection(db, 'incoming_logs'));
                     batch.set(logRef, logEntry);
                 }
-
-                const existingIndex = updatedInventory.findIndex(i => i.id === item.id);
-                if (existingIndex > -1) {
-                    updatedInventory[existingIndex] = newItem;
-                } else {
-                    updatedInventory.push(newItem);
-                }
             }
             await batch.commit();
         }
 
         await fetchCollection('inventory', setInventory, [], false);
         await fetchCollection('incoming_logs', setIncomingLogs, [], false);
-
+        
         setLoading(false);
         return true;
+
     } catch (error) {
         console.error('Error importing inventory:', error);
         toast({
@@ -804,6 +793,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     </AppContext.Provider>
   );
 };
+
+    
 
     
 
