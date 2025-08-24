@@ -4,11 +4,10 @@
 import { useState, useContext, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Download, CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
 import { StockTakeTable } from '@/components/inventory/stock-take-table';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
-import * as XLSX from 'xlsx';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,33 +31,6 @@ export default function StockTakePage() {
         return Object.values(counts).some(value => value !== '' && !isNaN(Number(value)));
     }, [counts]);
 
-    const handleExportReport = () => {
-        if (!hasCounts) {
-            toast({ title: 'Tidak ada data untuk diekspor', description: 'Silakan masukkan setidaknya satu kuantitas hitungan.', variant: 'destructive'});
-            return;
-        }
-
-        const reportData = inventory.map(item => {
-            const countedQty = counts[item.id] !== undefined && counts[item.id] !== '' ? Number(counts[item.id]) : null;
-            const variance = countedQty !== null ? countedQty - item.quantity : null;
-            return {
-                'SKU': item.id,
-                'Item Name': item.name,
-                'Brand': item.brand,
-                'Category': item.category,
-                'Unit': item.unit,
-                'System Quantity': item.quantity,
-                'Counted Quantity': countedQty ?? 'N/A',
-                'Variance': variance ?? 'N/A'
-            };
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(reportData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'StockTakeReport');
-        XLSX.writeFile(workbook, `stock_take_report_${new Date().toISOString().split('T')[0]}.csv`);
-    };
-
     const handleSubmit = async () => {
         const countedItems = Object.entries(counts).filter(([, value]) => value !== '' && !isNaN(Number(value)));
 
@@ -80,10 +52,6 @@ export default function StockTakePage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title="Stock Take">
-        <Button variant="outline" onClick={handleExportReport} disabled={isSubmitting || !hasCounts}>
-          <Download className="mr-2 h-4 w-4" />
-          Export Report
-        </Button>
          <AlertDialog>
             <AlertDialogTrigger asChild>
                 <Button disabled={isSubmitting || loading || !hasCounts}>

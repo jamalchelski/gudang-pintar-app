@@ -24,17 +24,48 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { FileText } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { useToast } from '@/hooks/use-toast';
 
 
 export function StockTakeLogTable() {
   const { stockTakeLogs, loading } = useContext(AppContext);
   const [selectedLog, setSelectedLog] = useState<StockTakeLog | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleViewDetails = (log: StockTakeLog) => {
     setSelectedLog(log);
     setIsDialogOpen(true);
+  };
+
+  const handleExport = () => {
+    if (stockTakeLogs.length === 0) {
+      toast({
+        title: 'Tidak Ada Data untuk Diekspor',
+        description: 'Tidak ada riwayat stock take untuk diekspor.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const dataToExport = stockTakeLogs.flatMap(log => 
+        log.details.map(detail => ({
+            'Stock Take Timestamp': new Date(log.timestamp).toLocaleString(),
+            'User': log.user,
+            'SKU': detail.id,
+            'Item Name': detail.name,
+            'Brand': detail.brand,
+            'System Quantity': detail.systemQty,
+            'Counted Quantity': detail.countedQty,
+            'Variance': detail.variance,
+        }))
+    );
+    
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'StockTakeLogs');
+    XLSX.writeFile(workbook, `stock_take_logs_report.csv`);
   };
 
   if (loading) {
@@ -43,54 +74,62 @@ export function StockTakeLogTable() {
 
   return (
     <>
-      <Card>
-        <ScrollArea className="h-[70vh]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead className="text-right">Items Counted</TableHead>
-                <TableHead className="text-right">Total Variance</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {stockTakeLogs.length > 0 ? (
-                stockTakeLogs.map(log => {
-                  const totalVariance = log.details.reduce((sum, item) => sum + item.variance, 0);
-                  return (
-                    <TableRow key={log.id}>
-                      <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                      <TableCell>{log.user}</TableCell>
-                      <TableCell className="text-right">{log.details.length}</TableCell>
-                      <TableCell className={cn(
-                        "text-right font-bold",
-                        totalVariance > 0 && "text-green-600",
-                        totalVariance < 0 && "text-destructive",
-                      )}>
-                        {totalVariance > 0 ? `+${totalVariance}` : totalVariance}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(log)}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          View Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+            <Button onClick={handleExport} disabled={stockTakeLogs.length === 0}>
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+            </Button>
+        </div>
+        <Card>
+            <ScrollArea className="h-[70vh]">
+            <Table>
+                <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    Tidak ada data stock take.
-                  </TableCell>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead className="text-right">Items Counted</TableHead>
+                    <TableHead className="text-right">Total Variance</TableHead>
+                    <TableHead></TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                {stockTakeLogs.length > 0 ? (
+                    stockTakeLogs.map(log => {
+                    const totalVariance = log.details.reduce((sum, item) => sum + item.variance, 0);
+                    return (
+                        <TableRow key={log.id}>
+                        <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
+                        <TableCell>{log.user}</TableCell>
+                        <TableCell className="text-right">{log.details.length}</TableCell>
+                        <TableCell className={cn(
+                            "text-right font-bold",
+                            totalVariance > 0 && "text-green-600",
+                            totalVariance < 0 && "text-destructive",
+                        )}>
+                            {totalVariance > 0 ? `+${totalVariance}` : totalVariance}
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <Button variant="outline" size="sm" onClick={() => handleViewDetails(log)}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            View Details
+                            </Button>
+                        </TableCell>
+                        </TableRow>
+                    );
+                    })
+                ) : (
+                    <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        Tidak ada data stock take.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+            </ScrollArea>
+        </Card>
+      </div>
       {selectedLog && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-4xl">
