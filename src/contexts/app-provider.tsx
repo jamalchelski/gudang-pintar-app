@@ -34,6 +34,7 @@ interface AppContextType {
   removeItemFromPickingList: (itemId: string) => void;
   updatePickingListQuantity: (itemId: string, quantity: number) => void;
   processPickingList: () => Promise<void>;
+  importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
   loading: boolean;
   user: User | null;
 }
@@ -59,6 +60,7 @@ export const AppContext = createContext<AppContextType>({
   removeItemFromPickingList: () => {},
   updatePickingListQuantity: () => {},
   processPickingList: async () => {},
+  importInventory: async () => false,
   loading: true,
   user: null,
 });
@@ -81,7 +83,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
    useEffect(() => {
     const initialize = async () => {
-      await seedAuth();
+      // await seedAuth(); // This was moved inside onAuthStateChanged logic
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setLoading(true);
         if (currentUser) {
@@ -98,19 +100,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             router.push('/login');
           }
         }
-        setTimeout(() => setLoading(false), 200);
+        // A small timeout to prevent layout shifts
+        setTimeout(() => setLoading(false), 50); 
       });
        setInitialized(true);
       return () => unsubscribe();
     };
     if (!initialized) {
+        // We only seed users if not in an auth-related page to avoid race conditions
+        if (pathname !== '/login') {
+            seedAuth();
+        }
         initialize();
     }
   }, [router, pathname, initialized]);
 
 
   const fetchCollection = useCallback(
-    async <T extends {id: string}>(
+    async <T extends {id: string, name?: string}>(
       collectionName: string,
       setter: React.Dispatch<React.SetStateAction<T[]>>,
       mockData: T[],
@@ -118,9 +125,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     ) => {
     try {
       const collectionRef = collection(db, collectionName);
-      let snapshot = await getDocs(query(collectionRef, orderBy('timestamp', 'desc')));
-
+      let snapshot = await getDocs(collectionRef);
+      
       if (snapshot.empty && shouldSeed) {
+        console.log(`Seeding ${collectionName}...`)
         const batch = writeBatch(db);
         mockData.forEach(item => {
           const docRef = doc(collectionRef, item.id);
@@ -130,7 +138,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
          snapshot = await getDocs(collectionRef);
       }
       
-      const data = snapshot.docs.map(
+      let data = snapshot.docs.map(
         doc =>
           ({
             id: doc.id,
@@ -138,11 +146,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           } as T)
       );
 
-      if (collectionName === 'inventory') {
-        setter(data.sort((a: any, b: any) => a.name?.localeCompare(b.name)));
-      } else {
-        setter(data);
+       // Sort by name if the property exists, otherwise no specific sort.
+      if (data.length > 0 && data[0].name) {
+          data = data.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      } else if (collectionName.includes('logs')) {
+          data = data.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       }
+      
+      setter(data);
 
       return snapshot.empty && shouldSeed;
 
@@ -350,8 +361,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addCategory = async (name: string): Promise<boolean> => {
     try {
-        const docRef = await addDoc(collection(db, 'categories'), { name });
-        setCategories(prev => [...prev, { id: docRef.id, name }].sort((a,b) => a.name.localeCompare(b.name)));
+        const docRef = doc(db, 'categories', name.toLowerCase().replace(/\s/g, '-'));
+        const newCategory = { id: docRef.id, name: name };
+        await setDoc(docRef, newCategory)
+        setCategories(prev => [...prev, newCategory].sort((a,b) => a.name.localeCompare(b.name)));
         return true;
     } catch (error) {
         console.error('Error adding category:', error);
@@ -374,8 +387,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   const addUnit = async (name: string): Promise<boolean> => {
       try {
-          const docRef = await addDoc(collection(db, 'units'), { name });
-          setUnits(prev => [...prev, { id: docRef.id, name }].sort((a,b) => a.name.localeCompare(b.name)));
+          const docRef = doc(db, 'units', name.toLowerCase());
+          const newUnit = { id: docRef.id, name: name };
+          await setDoc(docRef, newUnit);
+          setUnits(prev => [...prev, newUnit].sort((a,b) => a.name.localeCompare(b.name)));
           return true;
       } catch (error) {
           console.error('Error adding unit:', error);
@@ -431,28 +446,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const newLogs: RetrievalLog[] = [];
         await runTransaction(db, async (transaction) => {
             const itemsToUpdate: { ref: DocumentReference, newQuantity: number }[] = [];
-            const retrievalLogPromises: Promise<any>[] = [];
 
-            // 1. Read phase: Read all documents and validate stock
             for (const pickedItem of pickingList) {
                 const itemDocRef = doc(db, 'inventory', pickedItem.id);
                 const itemDoc = await transaction.get(itemDocRef);
-
-                if (!itemDoc.exists()) {
-                    throw new Error(`Item ${pickedItem.name} tidak ditemukan.`);
-                }
-
+                if (!itemDoc.exists()) throw new Error(`Item ${pickedItem.name} tidak ditemukan.`);
                 const currentQuantity = itemDoc.data().quantity;
                 const newQuantity = currentQuantity - pickedItem.quantity;
-
-                if (newQuantity < 0) {
-                    throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
-                }
-
+                if (newQuantity < 0) throw new Error(`Stok tidak mencukupi untuk item ${pickedItem.name}.`);
                 itemsToUpdate.push({ ref: itemDocRef, newQuantity });
             }
 
-            // 2. Write phase: Update all documents and create logs
             for (const { ref, newQuantity } of itemsToUpdate) {
                 const pickedItem = pickingList.find(p => p.id === ref.id)!;
                 transaction.update(ref, {
@@ -467,14 +471,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                     user: user.email ?? 'unknown',
                     timestamp: new Date().toISOString()
                 };
-                // We cannot use await inside transaction for non-transactional operations
+
                 const logRef = doc(collection(db, "retrieval_logs"));
                 transaction.set(logRef, logEntry);
                 newLogs.push({ ...logEntry, id: logRef.id });
             }
         });
 
-        // Update local state after successful transaction
         const updatedInventory = [...inventory];
         pickingList.forEach(pickedItem => {
             const index = updatedInventory.findIndex(invItem => invItem.id === pickedItem.id);
@@ -484,8 +487,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             }
         });
         setInventory(updatedInventory);
-        setPickingList([]); // Clear the picking list
-        setRetrievalLogs(prev => [...newLogs, ...prev]);
+        setPickingList([]);
+        setRetrievalLogs(prev => [...newLogs, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
 
         toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
 
@@ -499,6 +502,51 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     setLoading(false);
   };
+
+  const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
+    if (!user) return false;
+    setLoading(true);
+    try {
+      const batch = writeBatch(db);
+      const newLogs: IncomingLog[] = [];
+      const updatedInventory = [...inventory];
+
+      for (const item of items) {
+        const docRef = doc(db, 'inventory', item.id);
+        const newItem: InventoryItem = {
+          ...item,
+          last_updated: new Date().toISOString(),
+        };
+        batch.set(docRef, newItem, { merge: true });
+
+        // For local state update
+        const existingIndex = updatedInventory.findIndex(i => i.id === item.id);
+        if (existingIndex > -1) {
+          updatedInventory[existingIndex] = newItem;
+        } else {
+          updatedInventory.push(newItem);
+        }
+      }
+
+      await batch.commit();
+      setInventory(updatedInventory.sort((a,b) => a.name.localeCompare(b.name)));
+      
+      // We are not creating logs for imports to avoid spamming the log.
+      // This could be changed if needed.
+
+      setLoading(false);
+      return true;
+    } catch (error) {
+      console.error('Error importing inventory:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengimpor data inventaris.',
+        variant: 'destructive',
+      });
+      setLoading(false);
+      return false;
+    }
+  }
 
   const value = {
     role,
@@ -519,15 +567,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     deleteUnit,
     addItemToPickingList,
     removeItemFromPickingList,
-    updatePickingListQuantity,
+  updatePickingListQuantity,
     processPickingList,
+    importInventory,
     loading,
     user,
   };
   
   const isLoginPage = pathname === '/login';
-  if (loading && !isLoginPage) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  if (loading && !isLoginPage && !initialized) {
+    return <div className="flex h-screen items-center justify-center">Memuat Aplikasi...</div>;
   }
   
   if (!user && !isLoginPage) {
@@ -535,7 +584,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   if(user && isLoginPage) {
-    return null;
+    // This prevents a flash of the login page if the user is already authenticated.
+    return <div className="flex h-screen items-center justify-center">Mengalihkan...</div>;
   }
 
   return (
