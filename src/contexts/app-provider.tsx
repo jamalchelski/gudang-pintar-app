@@ -90,22 +90,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
    useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setLoading(true);
+      setUser(currentUser);
       if (currentUser) {
-        setUser(currentUser);
         const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
         setRole(userRole);
         if (pathname === '/login') {
           router.push('/');
         }
       } else {
-        setUser(null);
         setRole('user');
         if (pathname !== '/login') {
           router.push('/login');
         }
       }
-      setTimeout(() => setLoading(false), 50); 
+      setLoading(false);
     });
     return () => unsubscribe();
   }, [router, pathname]);
@@ -724,17 +722,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     user,
   };
   
-  if (loading && pathname !== '/login') {
+  if (loading) {
     return <div className="flex h-screen items-center justify-center">Memuat Aplikasi...</div>;
-  }
-  
-  if (!user && pathname !== '/login') {
-    return null;
-  }
-
-  if(user && pathname === '/login') {
-      router.push('/');
-    return <div className="flex h-screen items-center justify-center">Mengalihkan...</div>;
   }
 
   return (
