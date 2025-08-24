@@ -41,34 +41,6 @@ export function StockTakeLogTable() {
     setIsDialogOpen(true);
   };
 
-  const handleExportSummary = () => {
-    if (stockTakeLogs.length === 0) {
-      toast({
-        title: 'Tidak Ada Data untuk Diekspor',
-        description: 'Tidak ada riwayat stock take untuk diekspor.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    const dataToExport = stockTakeLogs.flatMap(log => 
-        log.details.map(detail => ({
-            'Stock Take Timestamp': new Date(log.timestamp).toLocaleString(),
-            'User': log.user,
-            'SKU': detail.id,
-            'Item Name': detail.name,
-            'Brand': detail.brand,
-            'System Quantity': detail.systemQty,
-            'Counted Quantity': detail.countedQty,
-            'Variance': detail.variance,
-        }))
-    );
-    
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'StockTakeLogs');
-    XLSX.writeFile(workbook, `stock_take_logs_summary_report.csv`);
-  };
-
   const handleExportDetails = (log: StockTakeLog | null) => {
     if (!log) {
         toast({ title: 'Error', description: 'Tidak ada log yang dipilih untuk diekspor.', variant: 'destructive' });
@@ -97,12 +69,6 @@ export function StockTakeLogTable() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex justify-end">
-            <Button onClick={handleExportSummary} disabled={stockTakeLogs.length === 0}>
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-            </Button>
-        </div>
         <Card>
             <ScrollArea className="h-[70vh]">
             <Table>
