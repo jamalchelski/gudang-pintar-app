@@ -553,8 +553,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const existingItems = new Map(existingDocs.filter(d => d.exists()).map(d => [d.id, d.data() as InventoryItem]));
 
         const chunks: Omit<InventoryItem, 'last_updated'>[][] = [];
-        for (let i = 0; i < items.length; i += 400) {
-            chunks.push(items.slice(i, i + 400));
+        for (let i = 0; i < items.length; i += 50) {
+            chunks.push(items.slice(i, i + 50));
         }
 
         for (const chunk of chunks) {
@@ -804,5 +804,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     </AppContext.Provider>
   );
 };
+
+    
 
     
