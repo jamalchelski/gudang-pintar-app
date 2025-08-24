@@ -2,9 +2,9 @@
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { InventoryItem, UserRole, Category, Unit, PickingListItem } from '@/lib/types';
+import { InventoryItem, UserRole, Category, Unit, PickingListItem, RetrievalLog, IncomingLog } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentSnapshot, DocumentReference } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentReference, query, orderBy } from 'firebase/firestore';
 import { db, auth, seedAuth } from '@/lib/firebase';
 import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
@@ -20,8 +20,10 @@ interface AppContextType {
   categories: Category[];
   units: Unit[];
   pickingList: PickingListItem[];
+  retrievalLogs: RetrievalLog[];
+  incomingLogs: IncomingLog[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
-  editItem: (item: InventoryItem) => Promise<boolean>;
+  editItem: (item: InventoryItem, oldQuantity: number) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number) => void;
   updateStock: (itemId: string, newQuantity: number) => void;
   addCategory: (name: string) => Promise<boolean>;
@@ -43,6 +45,8 @@ export const AppContext = createContext<AppContextType>({
   categories: [],
   units: [],
   pickingList: [],
+  retrievalLogs: [],
+  incomingLogs: [],
   addItem: async () => false,
   editItem: async () => false,
   reduceStock: () => {},
@@ -66,6 +70,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [pickingList, setPickingList] = useState<PickingListItem[]>([]);
+  const [retrievalLogs, setRetrievalLogs] = useState<RetrievalLog[]>([]);
+  const [incomingLogs, setIncomingLogs] = useState<IncomingLog[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
@@ -112,7 +118,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     ) => {
     try {
       const collectionRef = collection(db, collectionName);
-      let snapshot = await getDocs(collectionRef);
+      let snapshot = await getDocs(query(collectionRef, orderBy('timestamp', 'desc')));
 
       if (snapshot.empty && shouldSeed) {
         const batch = writeBatch(db);
@@ -131,7 +137,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             ...doc.data(),
           } as T)
       );
-      setter(data.sort((a: any, b: any) => a.name?.localeCompare(b.name)));
+
+      if (collectionName === 'inventory') {
+        setter(data.sort((a: any, b: any) => a.name?.localeCompare(b.name)));
+      } else {
+        setter(data);
+      }
 
       return snapshot.empty && shouldSeed;
 
@@ -139,7 +150,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error(`Error fetching ${collectionName}:`, error);
       toast({
         title: 'Error',
-        description: `Failed to fetch ${collectionName} data. Check Firestore rules.`,
+        description: `Gagal mengambil data ${collectionName}.`,
         variant: 'destructive',
       });
       return false;
@@ -157,6 +168,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const seeded = await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
       await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
       await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
+      await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
+      await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+
 
       if(seeded) {
         toast({
@@ -172,6 +186,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [toast, user, fetchCollection]);
 
   const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
+    if (!user) return false;
     try {
       const itemDocRef = doc(db, 'inventory', itemData.id);
 
@@ -179,7 +194,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (docSnap.exists()) {
         toast({
             title: 'Error',
-            description: `Item with SKU ${itemData.id} already exists.`,
+            description: `Item dengan SKU ${itemData.id} sudah ada.`,
             variant: 'destructive',
         });
         return false;
@@ -193,20 +208,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await setDoc(itemDocRef, newItem);
       
       setInventory(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
+
+      // Create incoming log
+      const logEntry: Omit<IncomingLog, 'id'> = {
+        itemId: newItem.id,
+        itemName: newItem.name,
+        quantityAdded: newItem.quantity,
+        newQuantity: newItem.quantity,
+        type: 'new_item',
+        user: user.email ?? 'unknown',
+        timestamp: new Date().toISOString(),
+      };
+      const logRef = await addDoc(collection(db, 'incoming_logs'), logEntry);
+      setIncomingLogs(prev => [{...logEntry, id: logRef.id}, ...prev]);
+
+
       return true;
 
     } catch(error) {
       console.error('Error adding item:', error);
       toast({
           title: 'Error',
-          description: 'Failed to add new item. Admins only.',
+          description: 'Gagal menambahkan item baru. Hanya admin.',
           variant: 'destructive',
       });
       return false;
     }
   }
 
-  const editItem = async (itemData: InventoryItem): Promise<boolean> => {
+  const editItem = async (itemData: InventoryItem, oldQuantity: number): Promise<boolean> => {
+     if (!user) return false;
     try {
         const itemDocRef = doc(db, 'inventory', itemData.id);
         const updatedItem = {
@@ -215,12 +246,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         };
         await updateDoc(itemDocRef, updatedItem);
         setInventory(prev => prev.map(item => item.id === itemData.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
+
+        const quantityChange = itemData.quantity - oldQuantity;
+        if (quantityChange > 0) {
+            const logEntry: Omit<IncomingLog, 'id'> = {
+                itemId: itemData.id,
+                itemName: itemData.name,
+                quantityAdded: quantityChange,
+                newQuantity: itemData.quantity,
+                type: 'stock_update',
+                user: user.email ?? 'unknown',
+                timestamp: new Date().toISOString(),
+            };
+             const logRef = await addDoc(collection(db, 'incoming_logs'), logEntry);
+             setIncomingLogs(prev => [{...logEntry, id: logRef.id}, ...prev]);
+        }
+
+
         return true;
     } catch (error) {
         console.error('Error editing item:', error);
         toast({
             title: 'Error',
-            description: 'Failed to edit item. Admins only.',
+            description: 'Gagal mengedit item. Hanya admin.',
             variant: 'destructive',
         });
         return false;
@@ -244,14 +292,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       );
 
       toast({
-        title: 'Stock Reduced',
-        description: `Reduced stock for item ${itemId} by ${amount}.`,
+        title: 'Stock Berkurang',
+        description: `Stok untuk item ${itemId} berkurang sebanyak ${amount}.`,
       });
 
       if (newQuantity < item.min_stock) {
         toast({
-          title: 'Low Stock Warning',
-          description: `${item.name} quantity is now ${newQuantity}, which is below the minimum stock of ${item.min_stock}.`,
+          title: 'Peringatan Stok Rendah',
+          description: `${item.name} sekarang berjumlah ${newQuantity}, di bawah stok minimum ${item.min_stock}.`,
           variant: 'destructive',
         });
       }
@@ -259,7 +307,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
        console.error('Error reducing stock:', error);
        toast({
           title: 'Error',
-          description: 'Failed to update stock in Firestore.',
+          description: 'Gagal memperbarui stok di Firestore.',
           variant: 'destructive',
         });
     }
@@ -267,7 +315,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateStock = async (itemId: string, newQuantity: number) => {
      const item = inventory.find(i => i.id === itemId);
-     if (!item) return;
+     if (!item || !user) return;
 
     try {
       const itemDoc = doc(db, 'inventory', itemId);
@@ -280,21 +328,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       );
       
       toast({
-        title: 'Stock Updated',
-        description: `Updated stock for item ${itemId} to ${newQuantity}.`,
+        title: 'Stok Diperbarui',
+        description: `Stok untuk item ${itemId} diperbarui menjadi ${newQuantity}.`,
       });
 
       if (newQuantity < item.min_stock) {
         toast({
-          title: 'Low Stock Warning',
-          description: `${item.name} quantity is now ${newQuantity}, which is below the minimum stock of ${item.min_stock}.`,
+          title: 'Peringatan Stok Rendah',
+          description: `${item.name} sekarang berjumlah ${newQuantity}, yang berada di bawah stok minimum ${item.min_stock}.`,
         });
       }
     } catch (error) {
        console.error('Error updating stock:', error);
        toast({
           title: 'Error',
-          description: 'Failed to update stock in Firestore.',
+          description: 'Gagal memperbarui stok di Firestore.',
           variant: 'destructive',
         });
     }
@@ -307,7 +355,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return true;
     } catch (error) {
         console.error('Error adding category:', error);
-        toast({ title: 'Error', description: 'Failed to add category.', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Gagal menambahkan kategori.', variant: 'destructive' });
         return false;
     }
   };
@@ -319,7 +367,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return true;
       } catch (error) {
           console.error('Error deleting category:', error);
-          toast({ title: 'Error', description: 'Failed to delete category.', variant: 'destructive' });
+          toast({ title: 'Error', description: 'Gagal menghapus kategori.', variant: 'destructive' });
           return false;
       }
   };
@@ -331,7 +379,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return true;
       } catch (error) {
           console.error('Error adding unit:', error);
-          toast({ title: 'Error', description: 'Failed to add unit.', variant: 'destructive' });
+          toast({ title: 'Error', description: 'Gagal menambahkan satuan.', variant: 'destructive' });
           return false;
       }
   };
@@ -343,7 +391,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return true;
       } catch (error) {
           console.error('Error deleting unit:', error);
-          toast({ title: 'Error', description: 'Failed to delete unit.', variant: 'destructive' });
+          toast({ title: 'Error', description: 'Gagal menghapus satuan.', variant: 'destructive' });
           return false;
       }
   };
@@ -374,10 +422,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Daftar Kosong', description: 'Tidak ada item untuk diproses.', variant: 'destructive' });
       return;
     }
+     if (!user) {
+      toast({ title: 'Error', description: 'Anda harus masuk untuk melakukan ini.', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     try {
+        const newLogs: RetrievalLog[] = [];
         await runTransaction(db, async (transaction) => {
             const itemsToUpdate: { ref: DocumentReference, newQuantity: number }[] = [];
+            const retrievalLogPromises: Promise<any>[] = [];
 
             // 1. Read phase: Read all documents and validate stock
             for (const pickedItem of pickingList) {
@@ -398,12 +452,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 itemsToUpdate.push({ ref: itemDocRef, newQuantity });
             }
 
-            // 2. Write phase: Update all documents
+            // 2. Write phase: Update all documents and create logs
             for (const { ref, newQuantity } of itemsToUpdate) {
+                const pickedItem = pickingList.find(p => p.id === ref.id)!;
                 transaction.update(ref, {
                     quantity: newQuantity,
                     last_updated: new Date().toISOString()
                 });
+                
+                const logEntry: Omit<RetrievalLog, 'id'> = {
+                    itemId: pickedItem.id,
+                    itemName: pickedItem.name,
+                    quantityRetrieved: pickedItem.quantity,
+                    user: user.email ?? 'unknown',
+                    timestamp: new Date().toISOString()
+                };
+                // We cannot use await inside transaction for non-transactional operations
+                const logRef = doc(collection(db, "retrieval_logs"));
+                transaction.set(logRef, logEntry);
+                newLogs.push({ ...logEntry, id: logRef.id });
             }
         });
 
@@ -418,6 +485,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
         setInventory(updatedInventory);
         setPickingList([]); // Clear the picking list
+        setRetrievalLogs(prev => [...newLogs, ...prev]);
+
         toast({ title: 'Sukses', description: 'Pengambilan sparepart berhasil diproses.' });
 
     } catch (error: any) {
@@ -438,6 +507,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     categories,
     units,
     pickingList,
+    retrievalLogs,
+    incomingLogs,
     addItem,
     editItem,
     reduceStock,

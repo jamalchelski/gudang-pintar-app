@@ -35,9 +35,11 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
   const { categories, units, editItem } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<InventoryItem>(item);
+  const [originalQuantity, setOriginalQuantity] = useState<number>(item.quantity);
 
   useEffect(() => {
     setFormData(item);
+    setOriginalQuantity(item.quantity);
   }, [item]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,12 +55,12 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
     e.preventDefault();
     setLoading(true);
 
-    const success = await editItem(formData);
+    const success = await editItem(formData, originalQuantity);
     
     if (success) {
       toast({
-        title: 'Item Updated',
-        description: `Item ${formData.name} has been successfully updated.`,
+        title: 'Item Diperbarui',
+        description: `Item ${formData.name} telah berhasil diperbarui.`,
       });
       setIsOpen(false);
     }
@@ -72,7 +74,7 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
           <DialogHeader>
             <DialogTitle>Edit: {item.name}</DialogTitle>
             <DialogDescription>
-              Update the details for this inventory item. SKU cannot be changed.
+              Perbarui detail untuk item inventaris ini. SKU tidak dapat diubah.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
@@ -81,18 +83,18 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
               <Input id="id" value={formData.id} disabled />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="name">Item Name</Label>
+              <Label htmlFor="name">Nama Item</Label>
               <Input id="name" value={formData.name} onChange={handleChange} />
             </div>
              <div className="space-y-2">
-              <Label htmlFor="brand">Brand</Label>
+              <Label htmlFor="brand">Merek</Label>
               <Input id="brand" value={formData.brand} onChange={handleChange} />
             </div>
              <div className="space-y-2 col-span-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Kategori</Label>
                <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue placeholder="Pilih kategori" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -102,14 +104,14 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
               </Select>
             </div>
              <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity</Label>
+              <Label htmlFor="quantity">Kuantitas</Label>
               <Input id="quantity" type="number" value={formData.quantity} onChange={handleChange} />
             </div>
              <div className="space-y-2">
-              <Label htmlFor="unit">Unit</Label>
+              <Label htmlFor="unit">Satuan</Label>
                <Select value={formData.unit} onValueChange={(value) => handleSelectChange('unit', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a unit" />
+                  <SelectValue placeholder="Pilih satuan" />
                 </SelectTrigger>
                 <SelectContent>
                    {units.map((unit) => (
@@ -119,20 +121,20 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="min_stock">Min Stock</Label>
+              <Label htmlFor="min_stock">Stok Min</Label>
               <Input id="min_stock" type="number" value={formData.min_stock} onChange={handleChange} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max_stock">Max Stock</Label>
+              <Label htmlFor="max_stock">Stok Maks</Label>
               <Input id="max_stock" type="number" value={formData.max_stock} onChange={handleChange} />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
-              Cancel
+              Batal
             </Button>
             <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Changes'}
+                {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
             </Button>
           </DialogFooter>
         </form>

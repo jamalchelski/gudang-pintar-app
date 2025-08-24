@@ -13,6 +13,7 @@ import {
   FileDown,
   PackageSearch,
   ShoppingCart,
+  FileText,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ const adminNavItems = [
   { href: '/reorder', label: 'Reorder', icon: PackageSearch },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
+  { href: '/reports', label: 'Laporan', icon: FileText },
 ];
 
 const userNavItems = [

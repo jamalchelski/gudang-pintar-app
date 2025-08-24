@@ -27,3 +27,23 @@ export type Unit = {
   id: string;
   name: string;
 };
+
+export type RetrievalLog = {
+    id: string;
+    itemId: string;
+    itemName: string;
+    quantityRetrieved: number;
+    user: string;
+    timestamp: string;
+}
+
+export type IncomingLog = {
+    id: string;
+    itemId: string;
+    itemName: string;
+    quantityAdded: number;
+    newQuantity: number;
+    type: 'new_item' | 'stock_update';
+    user: string;
+    timestamp: string;
+}
