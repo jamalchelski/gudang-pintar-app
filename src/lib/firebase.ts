@@ -2,7 +2,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth, connectAuthEmulator, inMemoryPersistence, setPersistence } from 'firebase/auth';
+import { getAuth, connectAuthEmulator, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Your web app's Firebase configuration
@@ -40,5 +40,5 @@ export const seedAuth = async () => {
 };
 
 if (typeof window !== 'undefined') {
-    setPersistence(auth, inMemoryPersistence);
+    setPersistence(auth, browserLocalPersistence);
 }
