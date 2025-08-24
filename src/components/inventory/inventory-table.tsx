@@ -27,6 +27,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { ReduceStockDialog } from './reduce-stock-dialog';
 import { EditItemDialog } from './edit-item-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface InventoryTableProps {
   data: InventoryItem[];
@@ -34,9 +44,10 @@ interface InventoryTableProps {
 
 export function InventoryTable({ data }: InventoryTableProps) {
   const [filter, setFilter] = useState('');
-  const { role } = useContext(AppContext);
+  const { role, deleteItem } = useContext(AppContext);
   const [reduceStockDialogOpen, setReduceStockDialogOpen] = useState(false);
   const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   const filteredData = useMemo(() => {
@@ -56,10 +67,18 @@ export function InventoryTable({ data }: InventoryTableProps) {
       setReduceStockDialogOpen(true);
     } else if (action === 'edit') {
       setEditItemDialogOpen(true);
-    } else {
-        // TODO: Implement delete
+    } else if (action === 'delete') {
+      setDeleteConfirmationOpen(true);
     }
   };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedItem) {
+        await deleteItem(selectedItem.id);
+        setDeleteConfirmationOpen(false);
+        setSelectedItem(null);
+    }
+  }
 
   const getStockStatus = (item: InventoryItem) => {
     if (item.quantity === 0) return <Badge variant="destructive">Out of Stock</Badge>;
@@ -68,6 +87,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
   };
 
   return (
+    <>
     <div className="bg-card rounded-lg shadow-sm">
       <div className="p-4">
         <Input
@@ -137,7 +157,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit Item
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(item, 'delete')}>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleActionClick(item, 'delete')}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete Item
                             </DropdownMenuItem>
@@ -158,6 +178,8 @@ export function InventoryTable({ data }: InventoryTableProps) {
           </TableBody>
         </Table>
       </div>
+    </div>
+    
       {selectedItem && (
         <ReduceStockDialog
           isOpen={reduceStockDialogOpen}
@@ -172,6 +194,22 @@ export function InventoryTable({ data }: InventoryTableProps) {
           item={selectedItem}
         />
       )}
-    </div>
+       {selectedItem && role === 'admin' && (
+        <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the item <strong className="text-foreground">{selectedItem.name}</strong> from your inventory.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setSelectedItem(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }

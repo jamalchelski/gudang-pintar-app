@@ -2027,6 +2027,10 @@ body {
   color: hsl(var(--accent-foreground));
 }
 
+.focus\:text-destructive:focus {
+  color: hsl(var(--destructive));
+}
+
 .focus\:text-primary-foreground:focus {
   color: hsl(var(--primary-foreground));
 }

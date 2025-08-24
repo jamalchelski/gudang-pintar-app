@@ -184,7 +184,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm2017.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$auth$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/auth/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__p__as__getAuth$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export p as getAuth>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__V__as__inMemoryPersistence$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export V as inMemoryPersistence>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__b__as__browserLocalPersistence$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export b as browserLocalPersistence>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__t__as__setPersistence$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export t as setPersistence>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__ab__as__createUserWithEmailAndPassword$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export ab as createUserWithEmailAndPassword>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__ac__as__signInWithEmailAndPassword$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export ac as signInWithEmailAndPassword>");
@@ -221,7 +221,7 @@ const seedAuth = async ()=>{
     }
 };
 if ("TURBOPACK compile-time truthy", 1) {
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__t__as__setPersistence$3e$__["setPersistence"])(auth, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__V__as__inMemoryPersistence$3e$__["inMemoryPersistence"]);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__t__as__setPersistence$3e$__["setPersistence"])(auth, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__b__as__browserLocalPersistence$3e$__["browserLocalPersistence"]);
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(module, globalThis.$RefreshHelpers$);
@@ -240,7 +240,7 @@ __turbopack_context__.s({
 const MOCK_INVENTORY = [
     // Existing 8 items
     {
-        id: 'SKU-001',
+        id: 'SKU-0001',
         name: 'Busi Champion',
         brand: 'Champion',
         category: 'Suku Cadang Mesin',
@@ -249,1195 +249,6 @@ const MOCK_INVENTORY = [
         min_stock: 10,
         max_stock: 50,
         last_updated: '2023-10-26T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-002',
-        name: 'Oli Mesin Federal',
-        brand: 'Federal Oil',
-        category: 'Pelumas',
-        unit: 'liter',
-        quantity: 8,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-10-25T14:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-003',
-        name: 'Filter Udara Sakura',
-        brand: 'Sakura',
-        category: 'Filter',
-        unit: 'pcs',
-        quantity: 25,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-10-26T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-004',
-        name: 'Kampas Rem Bendix',
-        brand: 'Bendix',
-        category: 'Sistem Pengereman',
-        unit: 'set',
-        quantity: 4,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-10-24T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-005',
-        name: 'Aki GS Astra',
-        brand: 'GS Astra',
-        category: 'Kelistrikan',
-        unit: 'pcs',
-        quantity: 12,
-        min_stock: 8,
-        max_stock: 15,
-        last_updated: '2023-10-26T08:15:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-006',
-        name: 'Bohlam Philips',
-        brand: 'Philips',
-        category: 'Kelistrikan',
-        unit: 'box',
-        quantity: 50,
-        min_stock: 20,
-        max_stock: 100,
-        last_updated: '2023-10-22T16:45:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-007',
-        name: 'Bearing Roda NTN',
-        brand: 'NTN',
-        category: 'Suku Cadang Roda',
-        unit: 'pcs',
-        quantity: 30,
-        min_stock: 15,
-        max_stock: 50,
-        last_updated: '2023-10-23T13:20:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-008',
-        name: 'Van Belt Mitsuboshi',
-        brand: 'Mitsuboshi',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 1,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-10-26T15:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    // Adding 92 more items
-    {
-        id: 'SKU-009',
-        name: 'Filter Oli Denso',
-        brand: 'Denso',
-        category: 'Filter',
-        unit: 'pcs',
-        quantity: 40,
-        min_stock: 15,
-        max_stock: 60,
-        last_updated: '2023-10-27T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-010',
-        name: 'Shock Absorber Kayaba',
-        brand: 'Kayaba',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'set',
-        quantity: 10,
-        min_stock: 4,
-        max_stock: 15,
-        last_updated: '2023-10-27T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-011',
-        name: 'Radiator Coolant Prestone',
-        brand: 'Prestone',
-        category: 'Sistem Pendingin',
-        unit: 'liter',
-        quantity: 20,
-        min_stock: 10,
-        max_stock: 50,
-        last_updated: '2023-10-27T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-012',
-        name: 'Tie Rod End 555',
-        brand: '555',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'pcs',
-        quantity: 18,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-10-28T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-013',
-        name: 'Minyak Rem Shell',
-        brand: 'Shell',
-        category: 'Sistem Pengereman',
-        unit: 'liter',
-        quantity: 22,
-        min_stock: 15,
-        max_stock: 50,
-        last_updated: '2023-10-28T15:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-014',
-        name: 'Wiper Blade Bosch',
-        brand: 'Bosch',
-        category: 'Komponen Eksterior',
-        unit: 'set',
-        quantity: 35,
-        min_stock: 20,
-        max_stock: 70,
-        last_updated: '2023-10-29T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-015',
-        name: 'Kopling Set Exedy',
-        brand: 'Exedy',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 7,
-        min_stock: 3,
-        max_stock: 10,
-        last_updated: '2023-10-29T11:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-016',
-        name: 'Timing Belt Gates',
-        brand: 'Gates',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 14,
-        min_stock: 8,
-        max_stock: 25,
-        last_updated: '2023-10-30T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-017',
-        name: 'Filter Bensin K&N',
-        brand: 'K&N',
-        category: 'Sistem Bahan Bakar',
-        unit: 'pcs',
-        quantity: 11,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-10-30T13:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-018',
-        name: 'Seal Klep NOK',
-        brand: 'NOK',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 45,
-        min_stock: 20,
-        max_stock: 100,
-        last_updated: '2023-10-31T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-019',
-        name: 'Lampu LED Autovision',
-        brand: 'Autovision',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 28,
-        min_stock: 15,
-        max_stock: 50,
-        last_updated: '2023-11-01T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-020',
-        name: 'Ball Joint TRW',
-        brand: 'TRW',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'pcs',
-        quantity: 16,
-        min_stock: 10,
-        max_stock: 30,
-        last_updated: '2023-11-01T14:20:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-021',
-        name: 'Oli Gardan Top 1',
-        brand: 'Top 1',
-        category: 'Pelumas',
-        unit: 'liter',
-        quantity: 19,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-02T09:45:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-022',
-        name: 'Filter AC Denso',
-        brand: 'Denso',
-        category: 'Filter',
-        unit: 'pcs',
-        quantity: 55,
-        min_stock: 25,
-        max_stock: 100,
-        last_updated: '2023-11-02T13:15:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-023',
-        name: 'Piston RIK',
-        brand: 'RIK',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 9,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-11-03T10:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-024',
-        name: 'Selang Radiator Samco',
-        brand: 'Samco',
-        category: 'Sistem Pendingin',
-        unit: 'pcs',
-        quantity: 23,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-03T15:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-025',
-        name: 'Klakson Hella',
-        brand: 'Hella',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 13,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-11-04T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-026',
-        name: 'Mur Roda Racing',
-        brand: 'Generic',
-        category: 'Suku Cadang Roda',
-        unit: 'set',
-        quantity: 60,
-        min_stock: 30,
-        max_stock: 100,
-        last_updated: '2023-11-04T16:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-027',
-        name: 'Grease/Gemuk Caltex',
-        brand: 'Caltex',
-        category: 'Pelumas',
-        unit: 'kg',
-        quantity: 8,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-11-05T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-028',
-        name: 'Fuel Pump Bosch',
-        brand: 'Bosch',
-        category: 'Sistem Bahan Bakar',
-        unit: 'pcs',
-        quantity: 6,
-        min_stock: 3,
-        max_stock: 10,
-        last_updated: '2023-11-05T14:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-029',
-        name: 'Karpet Mobil Comfort',
-        brand: 'Comfort',
-        category: 'Komponen Interior',
-        unit: 'set',
-        quantity: 12,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-11-06T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-030',
-        name: 'Sensor Parkir',
-        brand: 'Generic',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 17,
-        min_stock: 10,
-        max_stock: 30,
-        last_updated: '2023-11-06T13:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-031',
-        name: 'Kunci Roda Tekiro',
-        brand: 'Tekiro',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 20,
-        min_stock: 10,
-        max_stock: 30,
-        last_updated: '2023-11-07T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-032',
-        name: 'Dongkrak Buaya 2 Ton',
-        brand: 'Generic',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 5,
-        min_stock: 2,
-        max_stock: 10,
-        last_updated: '2023-11-07T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-033',
-        name: 'Coil Pengapian Denso',
-        brand: 'Denso',
-        category: 'Kelistrikan',
-        unit: 'pcs',
-        quantity: 13,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-11-08T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-034',
-        name: 'Engine Mounting RBI',
-        brand: 'RBI',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 9,
-        min_stock: 5,
-        max_stock: 15,
-        last_updated: '2023-11-08T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-035',
-        name: 'Baut Oli Mesin',
-        brand: 'Generic',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 150,
-        min_stock: 50,
-        max_stock: 300,
-        last_updated: '2023-11-09T09:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-036',
-        name: 'Oli Transmisi Manual Eneos',
-        brand: 'Eneos',
-        category: 'Pelumas',
-        unit: 'liter',
-        quantity: 25,
-        min_stock: 10,
-        max_stock: 50,
-        last_updated: '2023-11-09T11:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-037',
-        name: 'Thermostat',
-        brand: 'TAMA',
-        category: 'Sistem Pendingin',
-        unit: 'pcs',
-        quantity: 22,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-10T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-038',
-        name: 'Paking Knalpot',
-        brand: 'Generic',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 80,
-        min_stock: 30,
-        max_stock: 150,
-        last_updated: '2023-11-10T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-039',
-        name: 'Sarung Jok MBTech',
-        brand: 'MBTech',
-        category: 'Komponen Interior',
-        unit: 'set',
-        quantity: 4,
-        min_stock: 2,
-        max_stock: 10,
-        last_updated: '2023-11-11T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-040',
-        name: 'Kaca Film 3M',
-        brand: '3M',
-        category: 'Komponen Eksterior',
-        unit: 'roll',
-        quantity: 2,
-        min_stock: 1,
-        max_stock: 5,
-        last_updated: '2023-11-11T15:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-041',
-        name: 'Sekring Blade',
-        brand: 'Generic',
-        category: 'Kelistrikan',
-        unit: 'box',
-        quantity: 10,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-11-12T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-042',
-        name: 'Relay Bosch 4 Kaki',
-        brand: 'Bosch',
-        category: 'Kelistrikan',
-        unit: 'pcs',
-        quantity: 40,
-        min_stock: 20,
-        max_stock: 80,
-        last_updated: '2023-11-12T13:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-043',
-        name: 'Kabel Busi Seiwa',
-        brand: 'Seiwa',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 14,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-11-13T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-044',
-        name: 'Boot As Roda',
-        brand: 'Generic',
-        category: 'Suku Cadang Roda',
-        unit: 'pcs',
-        quantity: 33,
-        min_stock: 15,
-        max_stock: 60,
-        last_updated: '2023-11-13T14:30:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-045',
-        name: 'Injector Cleaner STP',
-        brand: 'STP',
-        category: 'Sistem Bahan Bakar',
-        unit: 'pcs',
-        quantity: 26,
-        min_stock: 10,
-        max_stock: 50,
-        last_updated: '2023-11-14T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-046',
-        name: 'Air Intake Cleaner',
-        brand: 'Rexco',
-        category: 'Sistem Bahan Bakar',
-        unit: 'pcs',
-        quantity: 18,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-14T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-047',
-        name: 'Link Stabilizer',
-        brand: '555',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'pcs',
-        quantity: 21,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-15T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-048',
-        name: 'Karet Support Shock',
-        brand: 'RBI',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'pcs',
-        quantity: 24,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-15T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-049',
-        name: 'Water Pump GMB',
-        brand: 'GMB',
-        category: 'Sistem Pendingin',
-        unit: 'pcs',
-        quantity: 5,
-        min_stock: 2,
-        max_stock: 10,
-        last_updated: '2023-11-16T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-050',
-        name: 'Tutup Radiator Denso',
-        brand: 'Denso',
-        category: 'Sistem Pendingin',
-        unit: 'pcs',
-        quantity: 30,
-        min_stock: 15,
-        max_stock: 50,
-        last_updated: '2023-11-16T15:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-051',
-        name: 'Busi Iridium NGK',
-        brand: 'NGK',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 50,
-        min_stock: 20,
-        max_stock: 100,
-        last_updated: '2023-11-17T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-052',
-        name: 'Oli Mesin Motul',
-        brand: 'Motul',
-        category: 'Pelumas',
-        unit: 'liter',
-        quantity: 12,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-11-17T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-053',
-        name: 'Filter Udara Ferrox',
-        brand: 'Ferrox',
-        category: 'Filter',
-        unit: 'pcs',
-        quantity: 8,
-        min_stock: 3,
-        max_stock: 15,
-        last_updated: '2023-11-18T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-054',
-        name: 'Kampas Rem Akebono',
-        brand: 'Akebono',
-        category: 'Sistem Pengereman',
-        unit: 'set',
-        quantity: 20,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-18T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-055',
-        name: 'Aki Yuasa',
-        brand: 'Yuasa',
-        category: 'Kelistrikan',
-        unit: 'pcs',
-        quantity: 10,
-        min_stock: 5,
-        max_stock: 15,
-        last_updated: '2023-11-19T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-056',
-        name: 'Lampu Halogen Osram',
-        brand: 'Osram',
-        category: 'Kelistrikan',
-        unit: 'box',
-        quantity: 40,
-        min_stock: 20,
-        max_stock: 80,
-        last_updated: '2023-11-19T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-057',
-        name: 'Bearing Roda Koyo',
-        brand: 'Koyo',
-        category: 'Suku Cadang Roda',
-        unit: 'pcs',
-        quantity: 25,
-        min_stock: 10,
-        max_stock: 50,
-        last_updated: '2023-11-20T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-058',
-        name: 'Van Belt Bando',
-        brand: 'Bando',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 15,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-11-20T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-059',
-        name: 'Filter Oli Fram',
-        brand: 'Fram',
-        category: 'Filter',
-        unit: 'pcs',
-        quantity: 30,
-        min_stock: 15,
-        max_stock: 60,
-        last_updated: '2023-11-21T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-060',
-        name: 'Shock Absorber Bilstein',
-        brand: 'Bilstein',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'set',
-        quantity: 6,
-        min_stock: 2,
-        max_stock: 10,
-        last_updated: '2023-11-21T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-061',
-        name: 'Radiator Coolant Top 1',
-        brand: 'Top 1',
-        category: 'Sistem Pendingin',
-        unit: 'liter',
-        quantity: 25,
-        min_stock: 10,
-        max_stock: 50,
-        last_updated: '2023-11-22T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-062',
-        name: 'Tie Rod End CTR',
-        brand: 'CTR',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'pcs',
-        quantity: 20,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-22T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-063',
-        name: 'Minyak Rem ATE',
-        brand: 'ATE',
-        category: 'Sistem Pengereman',
-        unit: 'liter',
-        quantity: 15,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-11-23T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-064',
-        name: 'Wiper Blade NWB',
-        brand: 'NWB',
-        category: 'Komponen Eksterior',
-        unit: 'set',
-        quantity: 30,
-        min_stock: 15,
-        max_stock: 60,
-        last_updated: '2023-11-23T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-065',
-        name: 'Kopling Set Valeo',
-        brand: 'Valeo',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 8,
-        min_stock: 3,
-        max_stock: 15,
-        last_updated: '2023-11-24T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-066',
-        name: 'Timing Belt Contitech',
-        brand: 'Contitech',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 12,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-11-24T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-067',
-        name: 'Filter Bensin Union Japan',
-        brand: 'Union Japan',
-        category: 'Sistem Bahan Bakar',
-        unit: 'pcs',
-        quantity: 15,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-11-25T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-068',
-        name: 'Seal Klep Corteco',
-        brand: 'Corteco',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 30,
-        min_stock: 15,
-        max_stock: 60,
-        last_updated: '2023-11-25T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-069',
-        name: 'Lampu HID Provision',
-        brand: 'Provision',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 10,
-        min_stock: 3,
-        max_stock: 15,
-        last_updated: '2023-11-26T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-070',
-        name: 'Ball Joint Sankei',
-        brand: 'Sankei',
-        category: 'Suspensi & Kaki-kaki',
-        unit: 'pcs',
-        quantity: 18,
-        min_stock: 10,
-        max_stock: 30,
-        last_updated: '2023-11-26T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-071',
-        name: 'Oli Gardan Pertamina',
-        brand: 'Pertamina',
-        category: 'Pelumas',
-        unit: 'liter',
-        quantity: 30,
-        min_stock: 15,
-        max_stock: 60,
-        last_updated: '2023-11-27T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-072',
-        name: 'Filter AC WIX',
-        brand: 'WIX',
-        category: 'Filter',
-        unit: 'pcs',
-        quantity: 40,
-        min_stock: 20,
-        max_stock: 80,
-        last_updated: '2023-11-27T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-073',
-        name: 'Piston NPR',
-        brand: 'NPR',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 10,
-        min_stock: 4,
-        max_stock: 20,
-        last_updated: '2023-11-28T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-074',
-        name: 'Selang Radiator Gates',
-        brand: 'Gates',
-        category: 'Sistem Pendingin',
-        unit: 'pcs',
-        quantity: 20,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-11-28T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-075',
-        name: 'Klakson Denso',
-        brand: 'Denso',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 15,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-11-29T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-076',
-        name: 'Pentil Ban Tubeless',
-        brand: 'Generic',
-        category: 'Suku Cadang Roda',
-        unit: 'pcs',
-        quantity: 200,
-        min_stock: 100,
-        max_stock: 500,
-        last_updated: '2023-11-29T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-077',
-        name: 'Grease/Gemuk Repsol',
-        brand: 'Repsol',
-        category: 'Pelumas',
-        unit: 'kg',
-        quantity: 10,
-        min_stock: 4,
-        max_stock: 20,
-        last_updated: '2023-11-30T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-078',
-        name: 'Fuel Pump Denso',
-        brand: 'Denso',
-        category: 'Sistem Bahan Bakar',
-        unit: 'pcs',
-        quantity: 7,
-        min_stock: 3,
-        max_stock: 15,
-        last_updated: '2023-11-30T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-079',
-        name: 'Sarung Stir',
-        brand: 'Generic',
-        category: 'Komponen Interior',
-        unit: 'pcs',
-        quantity: 25,
-        min_stock: 10,
-        max_stock: 50,
-        last_updated: '2023-12-01T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-080',
-        name: 'Kamera Mundur',
-        brand: 'Generic',
-        category: 'Kelistrikan',
-        unit: 'set',
-        quantity: 12,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-12-01T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-081',
-        name: 'Kunci Inggris',
-        brand: 'Lippro',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 15,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-12-02T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-082',
-        name: 'Obeng Set',
-        brand: 'Tekiro',
-        category: 'Perkakas & Lain-lain',
-        unit: 'set',
-        quantity: 10,
-        min_stock: 5,
-        max_stock: 20,
-        last_updated: '2023-12-02T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-083',
-        name: 'Coil Pengapian Bosch',
-        brand: 'Bosch',
-        category: 'Kelistrikan',
-        unit: 'pcs',
-        quantity: 10,
-        min_stock: 4,
-        max_stock: 20,
-        last_updated: '2023-12-03T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-084',
-        name: 'Engine Mounting TENACITY',
-        brand: 'TENACITY',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 8,
-        min_stock: 3,
-        max_stock: 15,
-        last_updated: '2023-12-03T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-085',
-        name: 'Ring Piston',
-        brand: 'TP',
-        category: 'Suku Cadang Mesin',
-        unit: 'set',
-        quantity: 12,
-        min_stock: 5,
-        max_stock: 25,
-        last_updated: '2023-12-04T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-086',
-        name: 'Oli Transmisi Otomatis Idemitsu',
-        brand: 'Idemitsu',
-        category: 'Pelumas',
-        unit: 'liter',
-        quantity: 20,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-12-04T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-087',
-        name: 'Tutup Oli Mesin',
-        brand: 'Generic',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 50,
-        min_stock: 20,
-        max_stock: 100,
-        last_updated: '2023-12-05T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-088',
-        name: 'Paking Karter',
-        brand: 'Generic',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 30,
-        min_stock: 10,
-        max_stock: 60,
-        last_updated: '2023-12-05T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-089',
-        name: 'Pengharum Mobil Glade',
-        brand: 'Glade',
-        category: 'Komponen Interior',
-        unit: 'pcs',
-        quantity: 100,
-        min_stock: 50,
-        max_stock: 200,
-        last_updated: '2023-12-06T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-090',
-        name: 'Talang Air',
-        brand: 'Generic',
-        category: 'Komponen Eksterior',
-        unit: 'set',
-        quantity: 15,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-12-06T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-091',
-        name: 'Kabel Jumper',
-        brand: 'Generic',
-        category: 'Perkakas & Lain-lain',
-        unit: 'set',
-        quantity: 8,
-        min_stock: 3,
-        max_stock: 15,
-        last_updated: '2023-12-07T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-092',
-        name: 'Multimeter Digital',
-        brand: 'Sanwa',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 5,
-        min_stock: 2,
-        max_stock: 10,
-        last_updated: '2023-12-07T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-093',
-        name: 'Tali Kipas Alternator',
-        brand: 'Dayco',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 22,
-        min_stock: 10,
-        max_stock: 40,
-        last_updated: '2023-12-08T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-094',
-        name: 'Seal Roda Belakang',
-        brand: 'NOK',
-        category: 'Suku Cadang Roda',
-        unit: 'pcs',
-        quantity: 28,
-        min_stock: 15,
-        max_stock: 50,
-        last_updated: '2023-12-08T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-095',
-        name: 'Master Rem Atas',
-        brand: 'Sanyco',
-        category: 'Sistem Pengereman',
-        unit: 'pcs',
-        quantity: 6,
-        min_stock: 3,
-        max_stock: 10,
-        last_updated: '2023-12-09T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-096',
-        name: 'Kit Master Rem Bawah',
-        brand: 'Seiken',
-        category: 'Sistem Pengereman',
-        unit: 'set',
-        quantity: 18,
-        min_stock: 10,
-        max_stock: 30,
-        last_updated: '2023-12-09T11:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-097',
-        name: 'Gantungan Knalpot',
-        brand: 'Generic',
-        category: 'Suku Cadang Mesin',
-        unit: 'pcs',
-        quantity: 60,
-        min_stock: 30,
-        max_stock: 120,
-        last_updated: '2023-12-10T10:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-098',
-        name: 'Cairan Pembersih Jamur Kaca',
-        brand: 'Generic',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 14,
-        min_stock: 5,
-        max_stock: 30,
-        last_updated: '2023-12-10T14:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-099',
-        name: 'Lap Microfiber',
-        brand: 'Generic',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 80,
-        min_stock: 40,
-        max_stock: 150,
-        last_updated: '2023-12-11T09:00:00Z',
-        image: 'https://placehold.co/400x400.png'
-    },
-    {
-        id: 'SKU-100',
-        name: 'Semir Ban Kit',
-        brand: 'Kit',
-        category: 'Perkakas & Lain-lain',
-        unit: 'pcs',
-        quantity: 35,
-        min_stock: 15,
-        max_stock: 70,
-        last_updated: '2023-12-11T11:00:00Z',
         image: 'https://placehold.co/400x400.png'
     }
 ];
@@ -1562,6 +373,7 @@ const AppContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$
     stockTakeLogs: [],
     addItem: async ()=>false,
     editItem: async ()=>false,
+    deleteItem: async ()=>false,
     reduceStock: async ()=>{},
     updateStock: ()=>{},
     addCategory: async ()=>false,
@@ -1676,13 +488,13 @@ const AppProvider = ({ children })=>{
                     setLoading(true);
                     const inventorySnapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDocs"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'inventory'));
                     const shouldSeed = inventorySnapshot.empty;
-                    const seeded = await fetchCollection('inventory', setInventory, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$mock$2d$data$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MOCK_INVENTORY"], shouldSeed);
+                    await fetchCollection('inventory', setInventory, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$mock$2d$data$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MOCK_INVENTORY"], shouldSeed);
                     await fetchCollection('categories', setCategories, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$mock$2d$data$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MOCK_CATEGORIES"], shouldSeed);
                     await fetchCollection('units', setUnits, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$mock$2d$data$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MOCK_UNITS"], shouldSeed);
                     await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
                     await fetchCollection('incoming_logs', setIncomingLogs, [], false);
                     await fetchCollection('stock_take_logs', setStockTakeLogs, [], false);
-                    if (seeded) {
+                    if (shouldSeed) {
                         toast({
                             title: 'Database Initialized',
                             description: 'Mock data has been added to Firestore.'
@@ -1802,6 +614,33 @@ const AppProvider = ({ children })=>{
             toast({
                 title: 'Error',
                 description: 'Failed to edit item.',
+                variant: 'destructive'
+            });
+            return false;
+        }
+    };
+    const deleteItem = async (itemId)=>{
+        if (role !== 'admin') {
+            toast({
+                title: 'Permission Error',
+                description: 'Only admins can delete items.',
+                variant: 'destructive'
+            });
+            return false;
+        }
+        try {
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["deleteDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'inventory', itemId));
+            setInventory((prev)=>prev.filter((item)=>item.id !== itemId));
+            toast({
+                title: 'Item Deleted',
+                description: `Item ${itemId} has been deleted.`
+            });
+            return true;
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to delete item.',
                 variant: 'destructive'
             });
             return false;
@@ -2116,43 +955,57 @@ const AppProvider = ({ children })=>{
             });
             return false;
         }
-        ;
         setLoading(true);
-        try {
-            const batch = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["writeBatch"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"]);
-            const updatedInventory = [
-                ...inventory
-            ];
-            for (const item of items){
-                const docRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'inventory', item.id);
-                const newItem = {
-                    ...item,
-                    last_updated: new Date().toISOString()
-                };
-                batch.set(docRef, newItem, {
-                    merge: true
+        let successCount = 0;
+        let errorCount = 0;
+        for (const item of items){
+            try {
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["runTransaction"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], async (transaction)=>{
+                    const itemRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'inventory', item.id);
+                    const itemDoc = await transaction.get(itemRef);
+                    const newItemData = {
+                        ...item,
+                        last_updated: new Date().toISOString()
+                    };
+                    const oldQuantity = itemDoc.exists() ? itemDoc.data().quantity : 0;
+                    const type = itemDoc.exists() ? 'stock_update' : 'new_item';
+                    transaction.set(itemRef, newItemData, {
+                        merge: true
+                    });
+                    const quantityChange = newItemData.quantity - oldQuantity;
+                    if (quantityChange > 0) {
+                        const logEntry = {
+                            itemId: newItemData.id,
+                            itemName: newItemData.name,
+                            quantityAdded: quantityChange,
+                            newQuantity: newItemData.quantity,
+                            type: type,
+                            user: user.email ?? 'unknown',
+                            timestamp: new Date().toISOString(),
+                            poNumber: 'IMPORT'
+                        };
+                        const logRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'incoming_logs'));
+                        transaction.set(logRef, logEntry);
+                    }
                 });
-                const existingIndex = updatedInventory.findIndex((i)=>i.id === item.id);
-                if (existingIndex > -1) {
-                    updatedInventory[existingIndex] = newItem;
-                } else {
-                    updatedInventory.push(newItem);
-                }
+                successCount++;
+            } catch (e) {
+                console.error(`Failed to import item ${item.id}:`, e);
+                errorCount++;
             }
-            await batch.commit();
-            setInventory(updatedInventory.sort((a, b)=>a.name.localeCompare(b.name)));
-            setLoading(false);
-            return true;
-        } catch (error) {
-            console.error('Error importing inventory:', error);
+        }
+        if (errorCount > 0) {
             toast({
-                title: 'Error',
-                description: 'Failed to import inventory data.',
+                title: 'Import Partially Failed',
+                description: `${successCount} items imported successfully, but ${errorCount} items failed. Check console for details.`,
                 variant: 'destructive'
             });
-            setLoading(false);
-            return false;
         }
+        // Refetch data to ensure UI is up-to-date
+        await fetchCollection('inventory', setInventory, [], false);
+        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+        setLoading(false);
+        return errorCount === 0;
     };
     const submitStockTake = async (counts)=>{
         if (!user || role !== 'admin') {
@@ -2319,6 +1172,7 @@ const AppProvider = ({ children })=>{
         stockTakeLogs,
         addItem,
         editItem,
+        deleteItem,
         reduceStock,
         updateStock,
         addCategory,
@@ -2341,7 +1195,7 @@ const AppProvider = ({ children })=>{
             children: "Loading Application..."
         }, void 0, false, {
             fileName: "[project]/src/contexts/app-provider.tsx",
-            lineNumber: 766,
+            lineNumber: 810,
             columnNumber: 12
         }, this);
     }
@@ -2350,7 +1204,7 @@ const AppProvider = ({ children })=>{
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/app-provider.tsx",
-        lineNumber: 770,
+        lineNumber: 814,
         columnNumber: 5
     }, this);
 };

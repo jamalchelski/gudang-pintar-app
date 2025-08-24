@@ -26,6 +26,7 @@ interface AppContextType {
   stockTakeLogs: StockTakeLog[];
   addItem: (item: OmitOnAdd) => Promise<boolean>;
   editItem: (item: InventoryItem, oldQuantity: number, type?: IncomingLog['type'], poNumber?: string) => Promise<boolean>;
+  deleteItem: (itemId: string) => Promise<boolean>;
   reduceStock: (itemId: string, amount: number, poNumber?: string) => Promise<void>;
   updateStock: (itemId: string, newQuantity: number) => void;
   addCategory: (name: string) => Promise<boolean>;
@@ -55,6 +56,7 @@ export const AppContext = createContext<AppContextType>({
   stockTakeLogs: [],
   addItem: async () => false,
   editItem: async () => false,
+  deleteItem: async () => false,
   reduceStock: async () => {},
   updateStock: () => {},
   addCategory: async () => false,
@@ -168,7 +170,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const inventorySnapshot = await getDocs(collection(db, 'inventory'));
       const shouldSeed = inventorySnapshot.empty;
       
-      const seeded = await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
+      await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
       await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
       await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
       await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
@@ -176,7 +178,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await fetchCollection('stock_take_logs', setStockTakeLogs, [], false);
 
 
-      if(seeded) {
+      if(shouldSeed) {
         toast({
             title: 'Database Initialized',
             description: 'Mock data has been added to Firestore.',
@@ -283,6 +285,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
   }
+
+  const deleteItem = async (itemId: string): Promise<boolean> => {
+    if (role !== 'admin') {
+        toast({ title: 'Permission Error', description: 'Only admins can delete items.', variant: 'destructive' });
+        return false;
+    }
+    try {
+        await deleteDoc(doc(db, 'inventory', itemId));
+        setInventory(prev => prev.filter(item => item.id !== itemId));
+        toast({ title: 'Item Deleted', description: `Item ${itemId} has been deleted.` });
+        return true;
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        toast({ title: 'Error', description: 'Failed to delete item.', variant: 'destructive' });
+        return false;
+    }
+  };
+
 
   const reduceStock = async (itemId: string, amount: number, poNumber?: string) => {
     if(!user) return;
@@ -539,46 +559,69 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
     if (!user || role !== 'admin') {
-      toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
-      return false;
-    };
-    setLoading(true);
-    try {
-      const batch = writeBatch(db);
-      const updatedInventory = [...inventory];
-
-      for (const item of items) {
-        const docRef = doc(db, 'inventory', item.id);
-        const newItem: InventoryItem = {
-          ...item,
-          last_updated: new Date().toISOString(),
-        };
-        batch.set(docRef, newItem, { merge: true });
-
-        const existingIndex = updatedInventory.findIndex(i => i.id === item.id);
-        if (existingIndex > -1) {
-          updatedInventory[existingIndex] = newItem;
-        } else {
-          updatedInventory.push(newItem);
-        }
-      }
-
-      await batch.commit();
-      setInventory(updatedInventory.sort((a,b) => a.name.localeCompare(b.name)));
-      
-      setLoading(false);
-      return true;
-    } catch (error) {
-      console.error('Error importing inventory:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to import inventory data.',
-        variant: 'destructive',
-      });
-      setLoading(false);
-      return false;
+        toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
+        return false;
     }
-  }
+    setLoading(true);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const item of items) {
+        try {
+            await runTransaction(db, async (transaction) => {
+                const itemRef = doc(db, 'inventory', item.id);
+                const itemDoc = await transaction.get(itemRef);
+
+                const newItemData: InventoryItem = {
+                    ...item,
+                    last_updated: new Date().toISOString(),
+                };
+
+                const oldQuantity = itemDoc.exists() ? itemDoc.data().quantity : 0;
+                const type = itemDoc.exists() ? 'stock_update' : 'new_item';
+                
+                transaction.set(itemRef, newItemData, { merge: true });
+
+                const quantityChange = newItemData.quantity - oldQuantity;
+
+                if (quantityChange > 0) {
+                    const logEntry: Omit<IncomingLog, 'id'> = {
+                        itemId: newItemData.id,
+                        itemName: newItemData.name,
+                        quantityAdded: quantityChange,
+                        newQuantity: newItemData.quantity,
+                        type: type,
+                        user: user.email ?? 'unknown',
+                        timestamp: new Date().toISOString(),
+                        poNumber: 'IMPORT',
+                    };
+                    const logRef = doc(collection(db, 'incoming_logs'));
+                    transaction.set(logRef, logEntry);
+                }
+            });
+            successCount++;
+        } catch (e) {
+            console.error(`Failed to import item ${item.id}:`, e);
+            errorCount++;
+        }
+    }
+
+    if (errorCount > 0) {
+        toast({
+            title: 'Import Partially Failed',
+            description: `${successCount} items imported successfully, but ${errorCount} items failed. Check console for details.`,
+            variant: 'destructive',
+        });
+    }
+
+    // Refetch data to ensure UI is up-to-date
+    await fetchCollection('inventory', setInventory, [], false);
+    await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+
+    setLoading(false);
+    return errorCount === 0;
+};
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
     if (!user || role !== 'admin') {
@@ -745,6 +788,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     stockTakeLogs,
     addItem,
     editItem,
+    deleteItem,
     reduceStock,
     updateStock,
     addCategory,
@@ -772,3 +816,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     </AppContext.Provider>
   );
 };
+
+    
+
+    
+
+    
+
+    
