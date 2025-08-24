@@ -14,6 +14,7 @@ import {
   ShoppingCart,
   FileText,
   ArchiveRestore,
+  UserCircle,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -22,21 +23,25 @@ interface NavProps {
   role: UserRole;
 }
 
-const adminNavItems = [
+const baseNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
   { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
+];
+
+const adminNavItems = [
+  ...baseNavItems,
   { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore },
   { href: '/reorder', label: 'Reorder', icon: PackageSearch },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
   { href: '/reports', label: 'Laporan', icon: FileText },
+  { href: '/profile', label: 'Profil', icon: UserCircle },
 ];
 
 const userNavItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/inventory', label: 'Inventory', icon: Boxes },
-  { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
+    ...baseNavItems,
+    { href: '/profile', label: 'Profil', icon: UserCircle },
 ];
 
 export function Nav({ role }: NavProps) {
