@@ -5,7 +5,7 @@ import React, { createContext, useState, ReactNode, useEffect, useCallback } fro
 import { InventoryItem, UserRole, Category, Unit, PickingListItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db, auth, seedAuth } from '@/lib/firebase';
 import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
@@ -68,31 +68,39 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [pickingList, setPickingList] = useState<PickingListItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setLoading(true);
-      if (currentUser) {
-        setUser(currentUser);
-        const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
-        setRole(userRole);
-        if (pathname === '/login') {
-          router.push('/');
+   useEffect(() => {
+    const initialize = async () => {
+      await seedAuth();
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setLoading(true);
+        if (currentUser) {
+          setUser(currentUser);
+          const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
+          setRole(userRole);
+          if (pathname === '/login') {
+            router.push('/');
+          }
+        } else {
+          setUser(null);
+          setRole('user');
+          if (pathname !== '/login') {
+            router.push('/login');
+          }
         }
-      } else {
-        setUser(null);
-        setRole('user');
-        if (pathname !== '/login') {
-          router.push('/login');
-        }
-      }
-       setTimeout(() => setLoading(false), 200);
-    });
-    return () => unsubscribe();
-  }, [router, pathname]);
+        setTimeout(() => setLoading(false), 200);
+      });
+       setInitialized(true);
+      return () => unsubscribe();
+    };
+    if (!initialized) {
+        initialize();
+    }
+  }, [router, pathname, initialized]);
 
 
   const fetchCollection = useCallback(

@@ -1,7 +1,9 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator, inMemoryPersistence, setPersistence } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -21,9 +23,7 @@ export const auth = getAuth(app);
 
 // NOTE: In a real app, you would not want to do this.
 // This is for demonstration purposes to create users if they don't exist.
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-
-const seedAuth = async () => {
+export const seedAuth = async () => {
     try {
         await signInWithEmailAndPassword(auth, 'admin@gudang.com', 'password123');
     } catch (error) {
@@ -40,7 +40,5 @@ const seedAuth = async () => {
 };
 
 if (typeof window !== 'undefined') {
-    setPersistence(auth, inMemoryPersistence).then(() => {
-        seedAuth();
-    });
+    setPersistence(auth, inMemoryPersistence);
 }
