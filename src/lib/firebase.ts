@@ -7,13 +7,13 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'fire
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  projectId: 'gudang-pintar-3f8yl',
-  appId: '1:448507006798:web:c26eec14d9d56fbaa0181f',
-  storageBucket: 'gudang-pintar-3f8yl.firebasestorage.app',
-  apiKey: 'AIzaSyDqV26E8CZWtU10Dhf1L0WEA6vWZWNPbOE',
-  authDomain: 'gudang-pintar-3f8yl.firebaseapp.com',
-  measurementId: '',
-  messagingSenderId: '448507006798',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
