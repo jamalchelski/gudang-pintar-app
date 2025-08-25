@@ -32,7 +32,10 @@ export default function LoginPage() {
       // In a real app, you'd use custom claims or a database lookup.
       if (email.startsWith('admin')) {
         setRole('admin');
-      } else {
+      } else if (email.startsWith('helpdesk')) {
+        setRole('helpdesk');
+      }
+      else {
         setRole('user');
       }
       router.push('/');

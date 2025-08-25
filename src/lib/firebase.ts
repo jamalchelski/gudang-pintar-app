@@ -37,6 +37,13 @@ export const seedAuth = async () => {
         console.log("Regular user not found, creating it.");
         await createUserWithEmailAndPassword(auth, 'user@gudang.com', 'password123');
     }
+
+     try {
+        await signInWithEmailAndPassword(auth, 'helpdesk@gudang.com', 'password123');
+    } catch (error) {
+        console.log("Helpdesk user not found, creating it.");
+        await createUserWithEmailAndPassword(auth, 'helpdesk@gudang.com', 'password123');
+    }
 };
 
 if (typeof window !== 'undefined') {

@@ -19,10 +19,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 
 export default function StockTakePage() {
-    const { inventory, submitStockTake, loading } = useContext(AppContext);
+    const { inventory, submitStockTake, loading, role } = useContext(AppContext);
     const [counts, setCounts] = useState<Record<string, number | string>>({});
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,6 +49,16 @@ export default function StockTakePage() {
             setCounts({}); // Reset counts after successful submission
         }
         setIsSubmitting(false);
+    }
+
+    if (role !== 'admin' && role !== 'helpdesk') {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Access Denied</AlertTitle>
+                <AlertDescription>You do not have permission to view this page.</AlertDescription>
+            </Alert>
+        )
     }
 
   return (

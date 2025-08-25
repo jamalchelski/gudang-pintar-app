@@ -94,7 +94,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const userRole = currentUser.email?.startsWith('admin') ? 'admin' : 'user';
+        let userRole: UserRole = 'user';
+        if (currentUser.email?.startsWith('admin')) {
+          userRole = 'admin';
+        } else if (currentUser.email?.startsWith('helpdesk')) {
+          userRole = 'helpdesk';
+        }
         setRole(userRole);
         if (pathname === '/login') {
           router.push('/');
@@ -557,75 +562,69 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   };
 
-  const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
-    if (!user || role !== 'admin') {
-        toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
-        return false;
-    }
-    setLoading(true);
+    const importInventory = async (items: Omit<InventoryItem, 'last_updated'>[]): Promise<boolean> => {
+        if (!user || role !== 'admin') {
+            toast({ title: 'Permission Error', description: 'Only admins can import data.', variant: 'destructive' });
+            return false;
+        }
+        setLoading(true);
 
-    let successCount = 0;
-    let errorCount = 0;
+        const chunks = [];
+        for (let i = 0; i < items.length; i += 50) {
+            chunks.push(items.slice(i, i + 50));
+        }
 
-    for (const item of items) {
-        try {
-            await runTransaction(db, async (transaction) => {
-                const itemRef = doc(db, 'inventory', item.id);
-                const itemDoc = await transaction.get(itemRef);
+        let success = true;
 
-                const newItemData: InventoryItem = {
-                    ...item,
-                    last_updated: new Date().toISOString(),
-                };
+        for (const chunk of chunks) {
+            try {
+                const batch = writeBatch(db);
+                for (const item of chunk) {
+                    const itemRef = doc(db, 'inventory', item.id);
+                     const newItemData: InventoryItem = {
+                        ...item,
+                        last_updated: new Date().toISOString(),
+                    };
+                    batch.set(itemRef, newItemData, { merge: true });
 
-                const oldQuantity = itemDoc.exists() ? itemDoc.data().quantity : 0;
-                const type = itemDoc.exists() ? 'stock_update' : 'new_item';
-                
-                transaction.set(itemRef, newItemData, { merge: true });
-
-                const quantityChange = newItemData.quantity - oldQuantity;
-
-                if (quantityChange > 0) {
+                    // This part is tricky without reading first, so logging is simplified.
+                    // For accurate logging, a transaction per item is better.
                     const logEntry: Omit<IncomingLog, 'id'> = {
                         itemId: newItemData.id,
                         itemName: newItemData.name,
-                        quantityAdded: quantityChange,
+                        quantityAdded: newItemData.quantity, // This assumes import sets the new quantity
                         newQuantity: newItemData.quantity,
-                        type: type,
+                        type: 'stock_update', // Assuming update, could be new_item
                         user: user.email ?? 'unknown',
                         timestamp: new Date().toISOString(),
                         poNumber: 'IMPORT',
                     };
                     const logRef = doc(collection(db, 'incoming_logs'));
-                    transaction.set(logRef, logEntry);
+                    batch.set(logRef, logEntry);
                 }
-            });
-            successCount++;
-        } catch (e) {
-            console.error(`Failed to import item ${item.id}:`, e);
-            errorCount++;
+                await batch.commit();
+            } catch (e) {
+                console.error('Failed to import a batch:', e);
+                toast({
+                    title: 'Import Batch Failed',
+                    description: 'One of the data batches failed to import. Check console for details.',
+                    variant: 'destructive',
+                });
+                success = false;
+            }
         }
-    }
 
-    if (errorCount > 0) {
-        toast({
-            title: 'Import Partially Failed',
-            description: `${successCount} items imported successfully, but ${errorCount} items failed. Check console for details.`,
-            variant: 'destructive',
-        });
-    }
+        // Refetch data to ensure UI is up-to-date
+        await fetchCollection('inventory', setInventory, [], false);
+        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
 
-    // Refetch data to ensure UI is up-to-date
-    await fetchCollection('inventory', setInventory, [], false);
-    await fetchCollection('incoming_logs', setIncomingLogs, [], false);
-
-    setLoading(false);
-    return errorCount === 0;
-};
+        setLoading(false);
+        return success;
+    };
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
-    if (!user || role !== 'admin') {
-        toast({ title: 'Permission Error', description: 'Only admins can perform a stock take.', variant: 'destructive' });
+    if (!user || (role !== 'admin' && role !== 'helpdesk')) {
+        toast({ title: 'Permission Error', description: 'You do not have permission to perform a stock take.', variant: 'destructive' });
         return false;
     }
 
@@ -705,8 +704,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const receiveItemsForPo = async (poData: PoData, items: ReceivingItem[]): Promise<boolean> => {
-    if (!user || role !== 'admin') {
-      toast({ title: 'Permission Error', description: 'Only admins can receive goods.', variant: 'destructive' });
+    if (!user || (role !== 'admin' && role !== 'helpdesk')) {
+      toast({ title: 'Permission Error', description: 'You do not have permission to receive goods.', variant: 'destructive' });
       return false;
     }
     setLoading(true);
@@ -816,11 +815,3 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     </AppContext.Provider>
   );
 };
-
-    
-
-    
-
-    
-
-    

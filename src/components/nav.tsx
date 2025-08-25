@@ -30,15 +30,19 @@ const baseNavItems = [
   { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
 ];
 
+const helpdeskNavItems = [
+    ...baseNavItems,
+    { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore },
+    { href: '/reorder', label: 'Reorder', icon: PackageSearch },
+    { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
+    { href: '/profile', label: 'Profil', icon: UserCircle },
+]
+
 const adminNavItems = [
-  ...baseNavItems,
-  { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore },
-  { href: '/reorder', label: 'Reorder', icon: PackageSearch },
-  { href: '/stock-take', label: 'Stock Take', icon: ClipboardList },
+  ...helpdeskNavItems,
   { href: '/analysis', label: 'Analisis AI', icon: BrainCircuit },
   { href: '/import-export', label: 'Import/Export', icon: ArrowRightLeft },
   { href: '/reports', label: 'Laporan', icon: FileText },
-  { href: '/profile', label: 'Profil', icon: UserCircle },
 ];
 
 const userNavItems = [
@@ -46,9 +50,22 @@ const userNavItems = [
     { href: '/profile', label: 'Profil', icon: UserCircle },
 ];
 
+const getNavItems = (role: UserRole) => {
+    switch (role) {
+        case 'admin':
+            return adminNavItems;
+        case 'helpdesk':
+            return helpdeskNavItems;
+        case 'user':
+            return userNavItems;
+        default:
+            return userNavItems;
+    }
+}
+
 export function Nav({ role }: NavProps) {
   const pathname = usePathname();
-  const navItems = role === 'admin' ? adminNavItems : userNavItems;
+  const navItems = getNavItems(role);
 
   return (
     <SidebarMenu>

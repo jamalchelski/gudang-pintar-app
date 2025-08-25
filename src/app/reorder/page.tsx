@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function ReorderPage() {
-  const { inventory } = useContext(AppContext);
+  const { inventory, role } = useContext(AppContext);
   const { toast } = useToast();
 
   const reorderItems = useMemo(() => {
@@ -32,6 +34,16 @@ export default function ReorderPage() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'ReorderList');
     XLSX.writeFile(workbook, `reorder_list.csv`);
   };
+
+  if (role !== 'admin' && role !== 'helpdesk') {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Access Denied</AlertTitle>
+                <AlertDescription>You do not have permission to view this page.</AlertDescription>
+            </Alert>
+        )
+    }
 
   return (
     <div className="flex flex-col gap-4">
