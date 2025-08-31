@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbo: {
-    enabled: true, // Enable Turbopack
-    // Add Turbopack-specific config here if needed
-  },
-  // Remove or migrate custom webpack config if present
+  // Remove turbo: { ... }
+  // Place other valid Next.js config options here
 };
 
 module.exports = nextConfig;
