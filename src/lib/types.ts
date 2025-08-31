@@ -20,7 +20,7 @@ export type ReceivingItem = InventoryItem & {
   // quantity in this context is the amount to be received
 };
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'admin' | 'user' | 'helpdesk';
 
 export type Category = {
   id: string;

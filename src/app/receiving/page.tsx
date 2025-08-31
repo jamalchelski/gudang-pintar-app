@@ -6,15 +6,17 @@ import { PageHeader } from '@/components/page-header';
 import { CreatePoForm, PoData } from '@/components/receiving/create-po-form';
 import { ReceivingPoSession } from '@/components/receiving/receiving-po-session';
 import { AppContext } from '@/contexts/app-provider';
-import { ReceivingItem } from '@/lib/types';
+import { ReceivingItem, UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 
 export default function ReceivingPage() {
   const [activePo, setActivePo] = useState<PoData | null>(null);
   const [receivedItems, setReceivedItems] = useState<ReceivingItem[]>([]);
-  const { receiveItemsForPo, loading } = useContext(AppContext);
+  const { receiveItemsForPo, loading, role } = useContext(AppContext);
 
   const handleStartSession = (poData: PoData) => {
     setActivePo(poData);
@@ -53,6 +55,16 @@ export default function ReceivingPage() {
     setActivePo(null);
     setReceivedItems([]);
   }
+
+  if (role !== 'admin' && role !== 'helpdesk') {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Access Denied</AlertTitle>
+                <AlertDescription>You do not have permission to view this page.</AlertDescription>
+            </Alert>
+        )
+    }
 
   if (!activePo) {
     return (

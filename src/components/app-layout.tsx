@@ -20,6 +20,24 @@ import { Button } from './ui/button';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
+const getRoleDisplayName = (role: UserRole) => {
+    switch(role) {
+        case 'admin': return 'Administrator';
+        case 'user': return 'Warehouse User';
+        case 'helpdesk': return 'Helpdesk';
+        default: return 'User';
+    }
+}
+
+const getAvatarFallback = (role: UserRole) => {
+     switch(role) {
+        case 'admin': return 'A';
+        case 'user': return 'U';
+        case 'helpdesk': return 'H';
+        default: return 'U';
+    }
+}
+
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { role, user, loading } = useContext(AppContext);
@@ -64,10 +82,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <Avatar>
               <AvatarImage src="https://placehold.co/100x100.png" alt="@user" />
-              <AvatarFallback>{role === 'admin' ? 'A' : 'U'}</AvatarFallback>
+              <AvatarFallback>{getAvatarFallback(role)}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">{role === 'admin' ? 'Admin' : 'Warehouse User'}</p>
+              <p className="font-semibold text-sm">{getRoleDisplayName(role)}</p>
               <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
           </div>
