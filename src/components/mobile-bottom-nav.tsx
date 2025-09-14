@@ -51,7 +51,7 @@ export function MobileBottomNav({ role, onLogout }: MobileBottomNavProps) {
   const mainNavItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'inventory', label: 'Inventory', icon: Boxes },
-    { href: '/inventory/scan', label: 'Scan', icon: QrCode },
+    { href: '/inventory/scan', label: 'Cari', icon: QrCode },
     { id: 'profile', label: 'Profile', icon: UserCircle },
   ];
 
