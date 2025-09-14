@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { InventoryItem, RetrievalLog } from '@/lib/types';
 import { z } from 'zod';
+import { googleAI } from '@genkit-ai/googleai';
 
 // Define the input schema, which is an array of inventory items and retrieval logs.
 const StockAnalysisInputSchema = z.object({
@@ -57,7 +58,7 @@ const StockAnalysisOutputSchema = z.object({
         name: z.string(),
         last_updated: z.string(),
     })).describe("Daftar item yang sudah lama tidak diupdate atau tidak ada pergerakan, yang menunjukkan kemungkinan stok mati. Tanggal hari ini adalah " + new Date().toDateString()),
-    recommendations: z.array(z.string()).describe("Daftar rekomendasi yang dapat ditindaklanjuti untuk meningkatkan manajemen inventaris. Prioritaskan pemesanan ulang untuk item yang stoknya kurang DAN pergerakannya cepat."),
+    recommendations: z.array(z.string()).describe("Daftar rekomendasi yang dapat ditindaklanjuti untuk meningkatkan manajemen inventaris. Prioritaskan pemesanan ulang untuk item yang stoknya kurang DAN juga merupakan item yang bergerak cepat."),
 });
 
 export type StockAnalysis = z.infer<typeof StockAnalysisOutputSchema>;
@@ -108,7 +109,16 @@ const analyzeStockFlow = ai.defineFlow(
         outputSchema: StockAnalysisOutputSchema,
     },
     async (input) => {
-        const { output } = await stockAnalysisPrompt(input);
+        const { output } = await ai.generate({
+            model: googleAI('gemini-1.5-flash-latest'),
+            prompt: {
+                ...stockAnalysisPrompt.prompt,
+                input,
+            },
+            output: {
+                schema: StockAnalysisOutputSchema,
+            },
+        });
         if (!output) {
             throw new Error("The AI model did not return a valid analysis.");
         }
