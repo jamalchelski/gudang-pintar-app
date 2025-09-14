@@ -81,9 +81,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center justify-between p-4 border-b bg-background md:justify-end">
+        <header className="flex h-16 items-center justify-between p-4 border-b bg-background md:justify-end">
           <SidebarTrigger className="md:hidden" />
-          <div className="flex items-center gap-4">
+          <div className="flex-1 text-center md:hidden">
+            <h1 className="text-lg font-bold">GUDANG PINTAR</h1>
+          </div>
+          <div className="hidden md:flex items-center gap-4">
             <Avatar>
               <AvatarImage src="https://placehold.co/100x100.png" alt="@user" />
               <AvatarFallback>{getAvatarFallback(role)}</AvatarFallback>
@@ -93,6 +96,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
           </div>
+           <div className="w-8 md:hidden"></div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">{children}</main>
         <MobileBottomNav role={role} onLogout={handleLogout} />
