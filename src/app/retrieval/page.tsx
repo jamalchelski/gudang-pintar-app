@@ -68,11 +68,7 @@ export default function RetrievalPage() {
         </Dialog>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Daftar Item Tersedia</h2>
-            <RetrievalInventoryTable />
-        </div>
+      <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-4">
              <h2 className="text-xl font-semibold">Daftar Pengambilan</h2>
            
@@ -81,12 +77,16 @@ export default function RetrievalPage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Daftar Kosong</AlertTitle>
                     <AlertDescription>
-                        Pilih item dari tabel di sebelah kiri untuk menambahkannya ke daftar pengambilan.
+                        Pilih item dari tabel di bawah atau gunakan pemindai QR untuk menambahkannya ke daftar pengambilan.
                     </AlertDescription>
                 </Alert>
             ) : (
                 <PickingList />
             )}
+        </div>
+        <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold">Daftar Item Tersedia</h2>
+            <RetrievalInventoryTable />
         </div>
       </div>
     </div>
