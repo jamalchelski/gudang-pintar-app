@@ -82,7 +82,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <header className="flex h-16 items-center justify-between p-4 border-b bg-background md:justify-end">
-          <SidebarTrigger className="md:hidden" />
+          <div className="w-8 md:hidden"></div>
           <div className="flex-1 text-center md:hidden">
             <h1 className="text-lg font-bold">GUDANG PINTAR</h1>
           </div>
