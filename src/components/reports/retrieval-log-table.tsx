@@ -65,9 +65,9 @@ export function RetrievalLogTable() {
                 <TableRow>
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Nama Item</TableHead>
-                <TableHead>No. PO/Ref</TableHead>
+                <TableHead className="hidden md:table-cell">No. PO/Ref</TableHead>
                 <TableHead className="text-right">Jumlah Diambil</TableHead>
-                <TableHead>Pengguna</TableHead>
+                <TableHead className="hidden md:table-cell">Pengguna</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -79,9 +79,9 @@ export function RetrievalLogTable() {
                         <div className="font-medium">{log.itemName}</div>
                         <div className="text-sm text-muted-foreground font-mono">{log.itemId}</div>
                     </TableCell>
-                    <TableCell>{log.poNumber || '-'}</TableCell>
+                    <TableCell className="hidden md:table-cell">{log.poNumber || '-'}</TableCell>
                     <TableCell className="text-right font-bold">{log.quantityRetrieved}</TableCell>
-                    <TableCell>{log.user}</TableCell>
+                    <TableCell className="hidden md:table-cell">{log.user}</TableCell>
                     </TableRow>
                 ))
                 ) : (
