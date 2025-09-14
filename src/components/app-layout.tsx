@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { MobileBottomNav } from './mobile-bottom-nav';
 
 const getRoleDisplayName = (role: UserRole) => {
     switch(role) {
@@ -59,7 +60,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar className="hidden md:block">
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <Warehouse className="w-8 h-8 text-sidebar-primary" />
@@ -93,7 +94,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">{children}</main>
+        <MobileBottomNav role={role} onLogout={handleLogout} />
       </SidebarInset>
     </SidebarProvider>
   );
