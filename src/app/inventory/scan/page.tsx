@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
 import { PageHeader } from '@/components/page-header';
@@ -38,38 +38,52 @@ export default function ScanPage() {
   const [isItemDialog, setIsItemDialog] = useState(false);
   const [isReduceDialog, setIsReduceDialog] = useState(false);
   const [isEditDialog, setIsEditDialog] = useState(false);
+  
+  const onScanSuccess = (decodedText: string) => {
+    // Prevent multiple dialogs from opening for the same scan
+    setScanResult(currentResult => {
+        if (currentResult === decodedText) return currentResult;
+        
+        if (source !== 'retrieval') {
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().catch(err => console.error("Failed to stop scanner", err));
+            }
+        }
+        return decodedText;
+    });
+  };
+
+  const onScanFailure = (errorMessage: string) => {
+    // console.warn(`QR Code no longer in view: ${errorMessage}`);
+  };
 
   useEffect(() => {
     const startScanner = async () => {
-        try {
-            await Html5Qrcode.getCameras();
-            const scanner = new Html5Qrcode('qr-reader');
-            scannerRef.current = scanner;
-            
-            scanner.start(
-                { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
-                (decodedText) => {
-                    // Prevent multiple dialogs from opening for the same scan
-                    if (scanResult === decodedText) return;
-                    setScanResult(decodedText);
-                    if (source !== 'retrieval') {
-                        scanner.stop();
-                    }
-                },
-                (errorMessage) => {
-                   // console.warn(`QR Code no longer in view: ${errorMessage}`);
-                }
-            ).catch(err => {
-                setError("Gagal memulai kamera. Pastikan Anda telah memberikan izin kamera.");
-                console.error("Camera start error:", err);
-            });
-        } catch (err) {
-             setError("Kamera tidak ditemukan atau akses ditolak. Silakan periksa pengaturan browser Anda.");
-             console.error("Camera permission error:", err);
+        // Ensure the element is in the DOM
+        if (document.getElementById('qr-reader')) {
+            try {
+                await Html5Qrcode.getCameras();
+                const scanner = new Html5Qrcode('qr-reader', {
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+                });
+                scannerRef.current = scanner;
+                
+                scanner.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 }
+                    },
+                    onScanSuccess,
+                    onScanFailure
+                ).catch(err => {
+                    setError("Gagal memulai kamera. Pastikan Anda telah memberikan izin kamera.");
+                    console.error("Camera start error:", err);
+                });
+            } catch (err) {
+                 setError("Kamera tidak ditemukan atau akses ditolak. Silakan periksa pengaturan browser Anda.");
+                 console.error("Camera permission error:", err);
+            }
         }
     };
     
@@ -77,7 +91,7 @@ export default function ScanPage() {
 
     return () => {
       if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(err => console.error("Failed to stop scanner", err));
+        scannerRef.current.stop().catch(err => console.error("Failed to stop scanner on cleanup", err));
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,10 +123,11 @@ export default function ScanPage() {
           description: `Tidak ada item inventaris yang cocok dengan SKU: ${scanResult}`,
           variant: 'destructive',
         });
-        setScanResult(null); // Reset for next scan
+        handleRescan(); // Reset for next scan
       }
     }
-  }, [scanResult, inventory, toast, source, pickingList]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scanResult]);
 
   const handleConfirmAddToPickingList = () => {
     if (scannedItem) {
@@ -137,13 +152,8 @@ export default function ScanPage() {
         scannerRef.current.start(
              { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 }},
-            (decodedText) => {
-                setScanResult(decodedText);
-                 if (source !== 'retrieval') {
-                    scannerRef.current?.stop();
-                }
-            },
-            () => {}
+            onScanSuccess,
+            onScanFailure
         ).catch(() => {
             setError("Gagal memulai ulang pemindai.")
         })
@@ -188,7 +198,7 @@ export default function ScanPage() {
 
       {scannedItem && (
         <>
-            <Dialog open={isItemDialog} onOpenChange={setIsItemDialog}>
+            <Dialog open={isItemDialog} onOpenChange={(open) => { if(!open) handleCloseAndReset()}}>
                 <DialogContent onInteractOutside={(e) => { e.preventDefault(); handleCloseAndReset(); }} onEscapeKeyDown={handleCloseAndReset}>
                 <DialogHeader>
                     <DialogTitle>Item Ditemukan: {scannedItem.name}</DialogTitle>
@@ -226,6 +236,7 @@ export default function ScanPage() {
                 isOpen={isReduceDialog}
                 setIsOpen={setIsReduceDialog}
                 item={scannedItem}
+                onClose={handleRescan}
             />
 
             {role === 'admin' && (
@@ -233,6 +244,7 @@ export default function ScanPage() {
                     isOpen={isEditDialog}
                     setIsOpen={setIsEditDialog}
                     item={scannedItem}
+                    onClose={handleRescan}
                 />
             )}
         </>

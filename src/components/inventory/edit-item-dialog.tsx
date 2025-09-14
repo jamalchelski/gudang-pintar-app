@@ -28,9 +28,10 @@ interface EditItemDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   item: InventoryItem;
+  onClose?: () => void;
 }
 
-export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps) {
+export function EditItemDialog({ isOpen, setIsOpen, item, onClose }: EditItemDialogProps) {
   const { toast } = useToast();
   const { categories, units, editItem } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,13 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
   const handleSelectChange = (id: 'category' | 'unit', value: string) => {
     setFormData(prev => ({...prev, [id]: value }));
   }
+  
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) {
+        onClose();
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +70,13 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
         title: 'Item Diperbarui',
         description: `Item ${formData.name} telah berhasil diperbarui.`,
       });
-      setIsOpen(false);
+      handleClose();
     }
     setLoading(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {if(!open) handleClose()}}>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -130,7 +138,7 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Batal
             </Button>
             <Button type="submit" disabled={loading}>

@@ -21,28 +21,36 @@ interface ReduceStockDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   item: InventoryItem;
+  onClose?: () => void;
 }
 
-export function ReduceStockDialog({ isOpen, setIsOpen, item }: ReduceStockDialogProps) {
+export function ReduceStockDialog({ isOpen, setIsOpen, item, onClose }: ReduceStockDialogProps) {
   const { reduceStock } = useContext(AppContext);
   const [amount, setAmount] = useState<number>(1);
   const [poNumber, setPoNumber] = useState('');
   const { toast } = useToast();
 
+  const handleClose = () => {
+    setIsOpen(false);
+    if(onClose) {
+        onClose();
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount > 0 && amount <= item.quantity) {
       reduceStock(item.id, amount, poNumber);
-      setIsOpen(false);
       setAmount(1);
       setPoNumber('');
+      handleClose();
     } else {
         toast({ title: "Error", description: "Jumlah tidak valid.", variant: "destructive" });
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {if (!open) handleClose()}}>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -80,7 +88,7 @@ export function ReduceStockDialog({ isOpen, setIsOpen, item }: ReduceStockDialog
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit">Confirm Reduction</Button>
