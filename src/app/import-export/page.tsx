@@ -5,17 +5,36 @@ import { useContext, useRef, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Download, Loader2 } from 'lucide-react';
+import { Upload, Download, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryItem } from '@/lib/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertTitle } from '@/components/ui/alert';
+
 
 export default function ImportExportPage() {
-  const { inventory, importInventory, loading: contextLoading } = useContext(AppContext);
+  const { inventory, importInventory, deleteAllData, loading: contextLoading, role } = useContext(AppContext);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleExport = (format: 'csv' | 'xlsx') => {
     if (inventory.length === 0) {
@@ -106,6 +125,29 @@ export default function ImportExportPage() {
     };
     reader.readAsBinaryString(file);
   };
+  
+  const handleDeleteAllData = async () => {
+    setDeleteError('');
+    if(!password) {
+        setDeleteError('Password is required.');
+        return;
+    }
+
+    setIsDeleting(true);
+    const success = await deleteAllData(password);
+    setIsDeleting(false);
+
+    if (success) {
+        setIsDeleteDialogOpen(false);
+        setPassword('');
+        toast({
+            title: "Data Reset Successfully",
+            description: "All data has been deleted and reset to initial state.",
+        })
+    } else {
+        setDeleteError('Authentication failed. Please check your password and try again.');
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -147,6 +189,58 @@ export default function ImportExportPage() {
             </Button>
           </CardContent>
         </Card>
+        
+        {role === 'admin' && (
+          <Card className="md:col-span-2 border-destructive">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle/> Danger Zone</CardTitle>
+              <CardDescription>
+                This action is irreversible. All inventory, category, unit, and log data will be permanently deleted.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+               <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete All Data
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                       This will permanently delete all data from the database. This action cannot be undone. To confirm, please enter your password.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                            id="password" 
+                            type="password" 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your login password" 
+                        />
+                    </div>
+                    {deleteError && (
+                        <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4"/>
+                            <AlertTitle>{deleteError}</AlertTitle>
+                        </Alert>
+                    )}
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => {setPassword(''); setDeleteError('');}}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAllData} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                        {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                        I understand, delete all data
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialog>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
