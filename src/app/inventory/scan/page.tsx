@@ -88,15 +88,15 @@ export default function ScanPage() {
             const isItemInList = pickingList.some(plItem => plItem.id === item.id);
              if (isItemInList) {
                 toast({
-                    title: "Item Already in List",
-                    description: `${item.name} is already in the picking list.`,
+                    title: "Item Sudah Ada di Daftar",
+                    description: `${item.name} sudah ada di daftar pengambilan.`,
                     variant: 'destructive'
                 });
             } else {
                 addItemToPickingList(item);
                 toast({
-                    title: "Item Added",
-                    description: `${item.name} added to picking list.`,
+                    title: "Item Ditambahkan",
+                    description: `${item.name} ditambahkan ke daftar pengambilan.`,
                 });
             }
             setScanResult(null); // Reset for next scan
