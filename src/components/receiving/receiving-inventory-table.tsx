@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useMemo, useContext } from 'react';
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -13,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { InventoryItem, ReceivingItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, QrCode } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
@@ -78,13 +79,19 @@ export function ReceivingInventoryTable({ onAddItem }: ReceivingInventoryTablePr
   return (
     <>
     <div className="bg-card rounded-lg shadow-sm">
-      <div className="p-4">
+      <div className="p-4 flex gap-2">
         <Input
           placeholder="Cari item untuk ditambahkan..."
           value={filter}
           onChange={e => setFilter(e.target.value)}
           className="max-w-sm"
         />
+        <Button asChild variant="outline" size="icon">
+          <Link href="/inventory/scan">
+            <QrCode className="h-4 w-4"/>
+            <span className="sr-only">Pindai QR Code</span>
+          </Link>
+        </Button>
       </div>
       <ScrollArea className="h-[60vh]">
         <Table>

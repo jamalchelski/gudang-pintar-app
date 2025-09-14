@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useContext, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -14,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, QrCode } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 
 export function RetrievalInventoryTable() {
@@ -43,13 +44,19 @@ export function RetrievalInventoryTable() {
 
   return (
     <div className="bg-card rounded-lg shadow-sm">
-      <div className="p-4">
+      <div className="p-4 flex gap-2">
         <Input
-          placeholder="Cari item berdasarkan nama, merek, kategori, atau SKU..."
+          placeholder="Cari item berdasarkan nama, SKU, dll..."
           value={filter}
           onChange={e => setFilter(e.target.value)}
           className="max-w-sm"
         />
+        <Button asChild variant="outline" size="icon">
+          <Link href="/inventory/scan">
+            <QrCode className="h-4 w-4"/>
+            <span className="sr-only">Pindai QR Code</span>
+          </Link>
+        </Button>
       </div>
       <ScrollArea className="h-[60vh]">
         <Table>
