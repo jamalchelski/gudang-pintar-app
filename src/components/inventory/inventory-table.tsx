@@ -3,6 +3,7 @@
 
 import React, { useState, useContext, useMemo } from 'react';
 import Image from 'next/image';
+import QRCode from 'react-qr-code';
 import {
   Table,
   TableBody,
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, QrCode as QrCodeIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface InventoryTableProps {
   data: InventoryItem[];
@@ -48,6 +50,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
   const [reduceStockDialogOpen, setReduceStockDialogOpen] = useState(false);
   const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   const filteredData = useMemo(() => {
@@ -61,7 +64,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
     );
   }, [data, filter]);
 
-  const handleActionClick = (item: InventoryItem, action: 'reduce' | 'edit' | 'delete') => {
+  const handleActionClick = (item: InventoryItem, action: 'reduce' | 'edit' | 'delete' | 'qrcode') => {
     setSelectedItem(item);
     if (action === 'reduce') {
       setReduceStockDialogOpen(true);
@@ -69,6 +72,8 @@ export function InventoryTable({ data }: InventoryTableProps) {
       setEditItemDialogOpen(true);
     } else if (action === 'delete') {
       setDeleteConfirmationOpen(true);
+    } else if (action === 'qrcode') {
+        setQrCodeDialogOpen(true);
     }
   };
 
@@ -147,6 +152,10 @@ export function InventoryTable({ data }: InventoryTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                         <DropdownMenuItem onClick={() => handleActionClick(item, 'qrcode')}>
+                            <QrCodeIcon className="mr-2 h-4 w-4" />
+                            QR Code
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleActionClick(item, 'reduce')}>
                           Reduce Stock
                         </DropdownMenuItem>
@@ -209,6 +218,26 @@ export function InventoryTable({ data }: InventoryTableProps) {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+      )}
+      {selectedItem && (
+         <Dialog open={qrCodeDialogOpen} onOpenChange={setQrCodeDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>QR Code for: {selectedItem.name}</DialogTitle>
+                    <DialogDescription>
+                        SKU: {selectedItem.id}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-center p-4 bg-white rounded-md">
+                    <QRCode
+                        size={256}
+                        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                        value={selectedItem.id}
+                        viewBox={`0 0 256 256`}
+                    />
+                </div>
+            </DialogContent>
+         </Dialog>
       )}
     </>
   );

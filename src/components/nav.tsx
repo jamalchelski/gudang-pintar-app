@@ -16,6 +16,7 @@ import {
   ArchiveRestore,
   UserCircle,
   BrainCircuit,
+  QrCode,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -69,23 +70,40 @@ export function Nav({ role }: NavProps) {
 
   return (
     <SidebarMenu>
-      {navItems.map(item => (
-        <SidebarMenuItem key={item.href}>
-          <Link href={item.href}>
-            <SidebarMenuButton
-              isActive={pathname === item.href}
-              className={cn(
-                'w-full justify-start',
-                pathname === item.href &&
-                  'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90'
-              )}
-            >
-              <item.icon className="h-5 w-5 mr-3" />
-              <span>{item.label}</span>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-      ))}
+      {navItems.map(item => {
+        const isInventory = item.href === '/inventory';
+        const isActive = isInventory ? pathname.startsWith('/inventory') : pathname === item.href;
+
+        return (
+            <SidebarMenuItem key={item.href}>
+            <Link href={item.href}>
+                <SidebarMenuButton
+                isActive={isActive}
+                className={cn(
+                    'w-full justify-start',
+                    isActive &&
+                    'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90'
+                )}
+                >
+                <item.icon className="h-5 w-5 mr-3" />
+                <span>{item.label}</span>
+                </SidebarMenuButton>
+            </Link>
+            {isInventory && (
+                 <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                         <Link href="/inventory/scan">
+                            <SidebarMenuSubButton isActive={pathname === '/inventory/scan'}>
+                                <QrCode />
+                                <span>Scan Item</span>
+                            </SidebarMenuSubButton>
+                        </Link>
+                    </SidebarMenuSubItem>
+                </SidebarMenuSub>
+            )}
+            </SidebarMenuItem>
+        )
+      })}
     </SidebarMenu>
   );
 }
