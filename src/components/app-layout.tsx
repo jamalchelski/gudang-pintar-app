@@ -99,7 +99,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
            <div className="w-8 md:hidden"></div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">{children}</main>
-        <MobileBottomNav role={role} onLogout={handleLogout} />
+        <MobileBottomNav role={role} onLogout={handleLogout} userEmail={user.email || ''} />
       </SidebarInset>
     </SidebarProvider>
   );

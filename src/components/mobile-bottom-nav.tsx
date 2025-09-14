@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 interface MobileBottomNavProps {
   role: UserRole;
   onLogout: () => void;
+  userEmail: string;
 }
 
 const inventorySubMenu = [
@@ -43,7 +44,7 @@ const inventorySubMenu = [
   { href: '/reports', label: 'Laporan', icon: FileText, roles: ['admin'] },
 ];
 
-export function MobileBottomNav({ role, onLogout }: MobileBottomNavProps) {
+export function MobileBottomNav({ role, onLogout, userEmail }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [isInventorySheetOpen, setIsInventorySheetOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
@@ -137,7 +138,11 @@ export function MobileBottomNav({ role, onLogout }: MobileBottomNavProps) {
                     </Link>
                      <Separator />
                      <Button variant="ghost" className="w-full justify-start text-destructive" onClick={() => { onLogout(); setIsProfileSheetOpen(false); }}>
-                        <LogOut className="mr-2 h-4 w-4" /> Logout
+                        <LogOut className="mr-2 h-4 w-4" /> 
+                        <div className="flex flex-col items-start">
+                          <span>Logout</span>
+                          <span className="text-xs text-muted-foreground font-normal">{userEmail}</span>
+                        </div>
                      </Button>
                      <p className="text-xs text-muted-foreground text-center pt-4">
                         V.1.2
