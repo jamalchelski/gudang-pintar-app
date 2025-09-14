@@ -93,12 +93,10 @@ export function Nav({ role }: NavProps) {
             {isInventory && (
                  <SidebarMenuSub>
                     <SidebarMenuSubItem>
-                         <Link href="/inventory/scan" passHref legacyBehavior>
-                            <SidebarMenuSubButton asChild isActive={pathname === '/inventory/scan'}>
-                                <a>
-                                    <QrCode />
-                                    <span>Scan Item</span>
-                                </a>
+                         <Link href="/inventory/scan">
+                            <SidebarMenuSubButton isActive={pathname === '/inventory/scan'}>
+                                <QrCode />
+                                <span>Scan Item</span>
                             </SidebarMenuSubButton>
                         </Link>
                     </SidebarMenuSubItem>
@@ -110,4 +108,5 @@ export function Nav({ role }: NavProps) {
     </SidebarMenu>
   );
 }
+
 
