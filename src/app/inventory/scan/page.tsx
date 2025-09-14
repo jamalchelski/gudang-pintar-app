@@ -53,6 +53,8 @@ export default function ScanPage() {
                     qrbox: { width: 250, height: 250 }
                 },
                 (decodedText) => {
+                    // Prevent multiple dialogs from opening for the same scan
+                    if (scanResult === decodedText) return;
                     setScanResult(decodedText);
                     if (source !== 'retrieval') {
                         scanner.stop();
@@ -78,12 +80,13 @@ export default function ScanPage() {
         scannerRef.current.stop().catch(err => console.error("Failed to stop scanner", err));
       }
     };
-  }, [source]);
+  }, [source, scanResult]);
 
   useEffect(() => {
     if (scanResult) {
       const item = inventory.find(i => i.id === scanResult);
       if (item) {
+        setScannedItem(item);
         if (source === 'retrieval') {
             const isItemInList = pickingList.some(plItem => plItem.id === item.id);
              if (isItemInList) {
@@ -92,21 +95,12 @@ export default function ScanPage() {
                     description: `${item.name} sudah ada di daftar pengambilan.`,
                     variant: 'destructive'
                 });
+                 setScanResult(null); // Allow re-scanning the same item if needed
             } else {
-                addItemToPickingList(item);
-                toast({
-                    title: "Item Ditambahkan",
-                    description: `${item.name} ditambahkan ke daftar pengambilan.`,
-                });
+                setIsItemDialog(true); // Open confirmation dialog
             }
-            setScanResult(null); // Reset for next scan
         } else {
-            setScannedItem(item);
             setIsItemDialog(true);
-            toast({
-                title: "Item Ditemukan",
-                description: `SKU ${item.id}: ${item.name}`
-            });
         }
       } else {
         toast({
@@ -114,16 +108,31 @@ export default function ScanPage() {
           description: `Tidak ada item inventaris yang cocok dengan SKU: ${scanResult}`,
           variant: 'destructive',
         });
-        setScanResult(null); // Reset for next scan, especially for retrieval mode
+        setScanResult(null); // Reset for next scan
       }
     }
-  }, [scanResult, inventory, toast, source, addItemToPickingList, pickingList]);
+  }, [scanResult, inventory, toast, source, pickingList]);
+
+  const handleConfirmAddToPickingList = () => {
+    if (scannedItem) {
+      addItemToPickingList(scannedItem);
+      toast({
+        title: "Item Ditambahkan",
+        description: `${scannedItem.name} ditambahkan ke daftar pengambilan.`,
+      });
+    }
+    handleCloseAndReset();
+  };
+
+  const handleCloseAndReset = () => {
+    setIsItemDialog(false);
+    setScannedItem(null);
+    setScanResult(null);
+  };
 
   const handleRescan = () => {
-    setScanResult(null);
-    setScannedItem(null);
-    setIsItemDialog(false);
-    if (scannerRef.current && !scannerRef.current.isScanning) {
+    handleCloseAndReset();
+    if (scannerRef.current && !scannerRef.current.isScanning && source !== 'retrieval') {
         scannerRef.current.start(
              { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 }},
@@ -179,7 +188,7 @@ export default function ScanPage() {
       {scannedItem && (
         <>
             <Dialog open={isItemDialog} onOpenChange={setIsItemDialog}>
-                <DialogContent>
+                <DialogContent onInteractOutside={(e) => { e.preventDefault(); handleCloseAndReset(); }} onEscapeKeyDown={handleCloseAndReset}>
                 <DialogHeader>
                     <DialogTitle>Item Ditemukan: {scannedItem.name}</DialogTitle>
                     <DialogDescription>SKU: {scannedItem.id}</DialogDescription>
@@ -189,17 +198,26 @@ export default function ScanPage() {
                     <p><strong>Kategori:</strong> {scannedItem.category}</p>
                     <p><strong>Kuantitas Saat Ini:</strong> {scannedItem.quantity} {scannedItem.unit}</p>
                 </div>
-                <DialogFooter className="sm:justify-between">
-                    <Button variant="outline" onClick={handleRescan}>
-                        Pindai Lagi
-                    </Button>
-                    <div className="flex gap-2">
-                        {role === 'admin' && (
-                            <Button variant="outline" onClick={() => { setIsItemDialog(false); setIsEditDialog(true); }}>Edit Item</Button>
-                        )}
-                        <Button onClick={() => { setIsItemDialog(false); setIsReduceDialog(true); }}>Kurangi Stok</Button>
-                    </div>
-                </DialogFooter>
+                {source === 'retrieval' ? (
+                     <DialogFooter className="sm:justify-between">
+                         <Button variant="outline" onClick={handleCloseAndReset}>
+                            Batal
+                        </Button>
+                        <Button onClick={handleConfirmAddToPickingList}>Ya, Tambahkan</Button>
+                    </DialogFooter>
+                ) : (
+                    <DialogFooter className="sm:justify-between">
+                        <Button variant="outline" onClick={handleRescan}>
+                            Pindai Lagi
+                        </Button>
+                        <div className="flex gap-2">
+                            {role === 'admin' && (
+                                <Button variant="outline" onClick={() => { setIsItemDialog(false); setIsEditDialog(true); }}>Edit Item</Button>
+                            )}
+                            <Button onClick={() => { setIsItemDialog(false); setIsReduceDialog(true); }}>Kurangi Stok</Button>
+                        </div>
+                    </DialogFooter>
+                )}
                 </DialogContent>
             </Dialog>
 
