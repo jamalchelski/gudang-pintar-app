@@ -80,7 +80,8 @@ export default function ScanPage() {
         scannerRef.current.stop().catch(err => console.error("Failed to stop scanner", err));
       }
     };
-  }, [source, scanResult]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (scanResult) {
@@ -199,18 +200,18 @@ export default function ScanPage() {
                     <p><strong>Kuantitas Saat Ini:</strong> {scannedItem.quantity} {scannedItem.unit}</p>
                 </div>
                 {source === 'retrieval' ? (
-                     <DialogFooter className="sm:justify-between">
+                     <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
                          <Button variant="outline" onClick={handleCloseAndReset}>
                             Batal
                         </Button>
                         <Button onClick={handleConfirmAddToPickingList}>Ya, Tambahkan</Button>
                     </DialogFooter>
                 ) : (
-                    <DialogFooter className="sm:justify-between">
+                    <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
                         <Button variant="outline" onClick={handleRescan}>
                             Pindai Lagi
                         </Button>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 justify-end">
                             {role === 'admin' && (
                                 <Button variant="outline" onClick={() => { setIsItemDialog(false); setIsEditDialog(true); }}>Edit Item</Button>
                             )}

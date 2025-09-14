@@ -68,8 +68,8 @@ export default function RetrievalPage() {
         </Dialog>
       </PageHeader>
 
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-4">
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="flex flex-col gap-4 lg:col-span-1 lg:order-2">
              <h2 className="text-xl font-semibold">Daftar Pengambilan</h2>
            
             {pickingList.length === 0 ? (
@@ -84,7 +84,7 @@ export default function RetrievalPage() {
                 <PickingList />
             )}
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 lg:col-span-2 lg:order-1">
             <h2 className="text-xl font-semibold">Daftar Item Tersedia</h2>
             <RetrievalInventoryTable />
         </div>
