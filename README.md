@@ -1,4 +1,5 @@
 # Firebase Studio
+# npx cypress open
 
 This is a NextJS starter in Firebase Studio.
 
