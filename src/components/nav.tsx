@@ -76,8 +76,9 @@ export function Nav({ role }: NavProps) {
 
         return (
             <SidebarMenuItem key={item.href}>
-            <Link href={item.href}>
+            <Link href={item.href} legacyBehavior passHref>
                 <SidebarMenuButton
+                asChild
                 isActive={isActive}
                 className={cn(
                     'w-full justify-start',
@@ -92,8 +93,8 @@ export function Nav({ role }: NavProps) {
             {isInventory && (
                  <SidebarMenuSub>
                     <SidebarMenuSubItem>
-                         <Link href="/inventory/scan">
-                            <SidebarMenuSubButton isActive={pathname === '/inventory/scan'}>
+                         <Link href="/inventory/scan" legacyBehavior passHref>
+                            <SidebarMenuSubButton asChild isActive={pathname === '/inventory/scan'}>
                                 <QrCode />
                                 <span>Scan Item</span>
                             </SidebarMenuSubButton>
