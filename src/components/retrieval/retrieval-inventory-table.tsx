@@ -52,7 +52,7 @@ export function RetrievalInventoryTable() {
           className="max-w-sm"
         />
         <Button asChild variant="outline" size="icon">
-          <Link href="/inventory/scan">
+          <Link href="/inventory/scan?source=retrieval">
             <QrCode className="h-4 w-4"/>
             <span className="sr-only">Pindai QR Code</span>
           </Link>

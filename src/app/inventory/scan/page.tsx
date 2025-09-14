@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
@@ -27,10 +27,13 @@ export default function ScanPage() {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scannedItem, setScannedItem] = useState<InventoryItem | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { inventory, role } = useContext(AppContext);
+  const { inventory, role, addItemToPickingList, pickingList } = useContext(AppContext);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  
+  const source = searchParams.get('source');
 
   const [isItemDialog, setIsItemDialog] = useState(false);
   const [isReduceDialog, setIsReduceDialog] = useState(false);
@@ -51,7 +54,9 @@ export default function ScanPage() {
                 },
                 (decodedText) => {
                     setScanResult(decodedText);
-                    scanner.stop();
+                    if (source !== 'retrieval') {
+                        scanner.stop();
+                    }
                 },
                 (errorMessage) => {
                    // console.warn(`QR Code no longer in view: ${errorMessage}`);
@@ -73,29 +78,46 @@ export default function ScanPage() {
         scannerRef.current.stop().catch(err => console.error("Failed to stop scanner", err));
       }
     };
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     if (scanResult) {
       const item = inventory.find(i => i.id === scanResult);
       if (item) {
-        setScannedItem(item);
-        setIsItemDialog(true);
-        toast({
-            title: "Item Ditemukan",
-            description: `SKU ${item.id}: ${item.name}`
-        });
+        if (source === 'retrieval') {
+            const isItemInList = pickingList.some(plItem => plItem.id === item.id);
+             if (isItemInList) {
+                toast({
+                    title: "Item Already in List",
+                    description: `${item.name} is already in the picking list.`,
+                    variant: 'destructive'
+                });
+            } else {
+                addItemToPickingList(item);
+                toast({
+                    title: "Item Added",
+                    description: `${item.name} added to picking list.`,
+                });
+            }
+            setScanResult(null); // Reset for next scan
+        } else {
+            setScannedItem(item);
+            setIsItemDialog(true);
+            toast({
+                title: "Item Ditemukan",
+                description: `SKU ${item.id}: ${item.name}`
+            });
+        }
       } else {
         toast({
           title: 'Item Tidak Ditemukan',
           description: `Tidak ada item inventaris yang cocok dengan SKU: ${scanResult}`,
           variant: 'destructive',
         });
-        // Optionally restart scanning
-        handleRescan();
+        setScanResult(null); // Reset for next scan, especially for retrieval mode
       }
     }
-  }, [scanResult, inventory, toast]);
+  }, [scanResult, inventory, toast, source, addItemToPickingList, pickingList]);
 
   const handleRescan = () => {
     setScanResult(null);
@@ -107,7 +129,9 @@ export default function ScanPage() {
             { fps: 10, qrbox: { width: 250, height: 250 }},
             (decodedText) => {
                 setScanResult(decodedText);
-                scannerRef.current?.stop();
+                 if (source !== 'retrieval') {
+                    scannerRef.current?.stop();
+                }
             },
             () => {}
         ).catch(() => {
@@ -120,7 +144,7 @@ export default function ScanPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title="Pindai QR Code Item">
-        <Button variant="outline" onClick={() => router.back()}>
+         <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
         </Button>
@@ -136,11 +160,16 @@ export default function ScanPage() {
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
-             {!error && !scanResult &&(
+             {!error && (
                  <Alert className="mt-4">
                     <Camera className="h-4 w-4" />
                     <AlertTitle>Arahkan ke QR Code</AlertTitle>
-                    <AlertDescription>Posisikan QR code item di dalam kotak pemindaian.</AlertDescription>
+                    <AlertDescription>
+                         {source === 'retrieval' 
+                            ? 'Pindai item untuk menambahkannya ke daftar pengambilan.'
+                            : 'Posisikan QR code item di dalam kotak pemindaian.'
+                         }
+                    </AlertDescription>
                 </Alert>
              )}
         </CardContent>
