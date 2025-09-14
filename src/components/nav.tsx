@@ -93,12 +93,13 @@ export function Nav({ role }: NavProps) {
             {isInventory && (
                  <SidebarMenuSub>
                     <SidebarMenuSubItem>
-                         <Link href="/inventory/scan">
-                            <SidebarMenuSubButton isActive={pathname === '/inventory/scan'}>
-                                <QrCode />
-                                <span>Scan Item</span>
-                            </SidebarMenuSubButton>
-                        </Link>
+                        <SidebarMenuSubButton
+                            href="/inventory/scan"
+                            isActive={pathname === '/inventory/scan'}
+                        >
+                            <QrCode />
+                            <span>Scan Item</span>
+                        </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                 </SidebarMenuSub>
             )}
@@ -108,5 +109,3 @@ export function Nav({ role }: NavProps) {
     </SidebarMenu>
   );
 }
-
-
