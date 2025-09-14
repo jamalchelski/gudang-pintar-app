@@ -111,16 +111,16 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
               Fill in the details below to add a new item to the inventory.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="id">SKU / Item ID</Label>
               <Input id="id" value={formData.id} onChange={handleChange} placeholder="e.g., SKU-009" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="name">Item Name</Label>
               <Input id="name" value={formData.name} onChange={handleChange} placeholder="e.g., Air Filter" />
             </div>
-             <div className="space-y-2">
+             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="brand">Brand</Label>
               <Input id="brand" value={formData.brand} onChange={handleChange} placeholder="e.g., Sakura" />
             </div>

@@ -69,15 +69,12 @@ export default function RetrievalPage() {
       </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">Daftar Item Tersedia</h2>
+        <div className="lg:col-span-2 flex flex-col gap-4">
+            <h2 className="text-xl font-semibold">Daftar Item Tersedia</h2>
             <RetrievalInventoryTable />
         </div>
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                 <h2 className="text-xl font-semibold">Daftar Pengambilan</h2>
-                 
-            </div>
+        <div className="flex flex-col gap-4">
+             <h2 className="text-xl font-semibold">Daftar Pengambilan</h2>
            
             {pickingList.length === 0 ? (
                  <Alert>

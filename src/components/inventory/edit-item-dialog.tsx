@@ -77,16 +77,16 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
               Perbarui detail untuk item inventaris ini. SKU tidak dapat diubah.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="id">SKU / Item ID</Label>
               <Input id="id" value={formData.id} disabled />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="name">Nama Item</Label>
               <Input id="name" value={formData.name} onChange={handleChange} />
             </div>
-             <div className="space-y-2">
+             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="brand">Merek</Label>
               <Input id="brand" value={formData.brand} onChange={handleChange} />
             </div>

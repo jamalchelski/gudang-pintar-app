@@ -106,12 +106,12 @@ export function InventoryTable({ data }: InventoryTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Image</TableHead>
+              <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
               <TableHead>Item Name</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead className="hidden md:table-cell">SKU</TableHead>
+              <TableHead className="hidden lg:table-cell">Category</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -121,7 +121,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
             {filteredData.length > 0 ? (
               filteredData.map(item => (
                 <TableRow key={item.id}>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Image
                       src={item.image}
                       alt={item.name}
@@ -135,13 +135,13 @@ export function InventoryTable({ data }: InventoryTableProps) {
                     <div className="font-medium">{item.name}</div>
                     <div className="text-sm text-muted-foreground">{item.brand}</div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                  <TableCell>{item.category}</TableCell>
+                  <TableCell className="font-mono text-xs hidden md:table-cell">{item.id}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{item.category}</TableCell>
                   <TableCell className="text-right">
                     <span className="font-bold">{item.quantity}</span>
                     <span className="text-muted-foreground"> {item.unit}</span>
                   </TableCell>
-                  <TableCell>{getStockStatus(item)}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{getStockStatus(item)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

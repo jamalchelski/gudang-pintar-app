@@ -160,8 +160,8 @@ export default function ImportExportPage() {
               Import inventory data from a CSV file. Make sure the file follows the required template format.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 sm:flex-row">
-            <Button className="w-full sm:w-auto" onClick={() => fileInputRef.current?.click()} disabled={loading || contextLoading}>
+          <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <Button onClick={() => fileInputRef.current?.click()} disabled={loading || contextLoading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
               Import from CSV
             </Button>
@@ -182,8 +182,8 @@ export default function ImportExportPage() {
               Export the current inventory data to a CSV file. This includes all item details and stock levels.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 sm:flex-row">
-            <Button className="w-full sm:w-auto" onClick={() => handleExport('csv')}>
+          <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <Button onClick={() => handleExport('csv')}>
               <Download className="mr-2 h-4 w-4" />
               Export to CSV
             </Button>
