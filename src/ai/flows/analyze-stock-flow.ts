@@ -109,19 +109,11 @@ const analyzeStockFlow = ai.defineFlow(
         outputSchema: StockAnalysisOutputSchema,
     },
     async (input) => {
-        const { output } = await ai.generate({
-            model: googleAI('gemini-1.5-flash-latest'),
-            prompt: {
-                ...stockAnalysisPrompt.prompt,
-                input,
-            },
-            output: {
-                schema: StockAnalysisOutputSchema,
-            },
-        });
+        const { output } = await stockAnalysisPrompt(input);
         if (!output) {
             throw new Error("The AI model did not return a valid analysis.");
         }
         return output;
     }
 );
+

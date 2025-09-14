@@ -74,6 +74,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
+            <p className="text-xs text-sidebar-foreground/50 text-center mt-2">
+                V.1.2
+            </p>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
