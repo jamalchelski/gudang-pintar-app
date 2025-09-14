@@ -36,7 +36,7 @@ interface AppContextType {
   addItemToPickingList: (item: InventoryItem) => void;
   removeItemFromPickingList: (itemId: string) => void;
   updatePickingListQuantity: (itemId: string, quantity: number) => void;
-  processPickingList: (poNumber?: string) => Promise<void>;
+  processPickingList: () => Promise<void>;
   importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
   submitStockTake: (counts: Record<string, number>) => Promise<boolean>;
   receiveItemsForPo: (poData: PoData, items: ReceivingItem[]) => Promise<boolean>;
@@ -486,7 +486,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setPickingList(prev => prev.map(pi => pi.id === itemId ? { ...pi, quantity: Math.max(0, Math.min(quantity, inventoryItem.quantity)) } : pi));
   };
 
-  const processPickingList = async (poNumber?: string) => {
+  const processPickingList = async () => {
     if (pickingList.length === 0) {
       toast({ title: 'List is empty', description: 'There are no items to process.', variant: 'destructive' });
       return;
@@ -533,7 +533,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 quantityRetrieved: pickedItem.quantity,
                 user: user.email ?? 'unknown',
                 timestamp: new Date().toISOString(),
-                ...(poNumber && { poNumber })
             };
 
             const logRef = doc(collection(db, "retrieval_logs"));
