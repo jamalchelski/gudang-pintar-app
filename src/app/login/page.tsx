@@ -51,7 +51,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary">
+          <div className="mx-auto mb-4">
             <Image src="/logo.png" alt="Gudang Pintar Logo" width={80} height={80} priority />
           </div>
           <CardTitle className="text-2xl">Gudang Pintar</CardTitle>
