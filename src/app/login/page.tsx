@@ -91,6 +91,7 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
+           <p className="text-center text-xs text-muted-foreground pt-4">V.1.2.1 Alpha</p>
         </CardContent>
       </Card>
     </div>
