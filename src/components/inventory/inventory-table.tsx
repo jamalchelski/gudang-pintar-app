@@ -3,6 +3,8 @@
 
 import React, { useState, useContext, useMemo } from 'react';
 import Image from 'next/image';
+import QRCode from 'react-qr-code';
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -15,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, QrCode as QrCodeIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface InventoryTableProps {
   data: InventoryItem[];
@@ -48,6 +51,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
   const [reduceStockDialogOpen, setReduceStockDialogOpen] = useState(false);
   const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   const filteredData = useMemo(() => {
@@ -61,7 +65,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
     );
   }, [data, filter]);
 
-  const handleActionClick = (item: InventoryItem, action: 'reduce' | 'edit' | 'delete') => {
+  const handleActionClick = (item: InventoryItem, action: 'reduce' | 'edit' | 'delete' | 'qrcode') => {
     setSelectedItem(item);
     if (action === 'reduce') {
       setReduceStockDialogOpen(true);
@@ -69,6 +73,8 @@ export function InventoryTable({ data }: InventoryTableProps) {
       setEditItemDialogOpen(true);
     } else if (action === 'delete') {
       setDeleteConfirmationOpen(true);
+    } else if (action === 'qrcode') {
+        setQrCodeDialogOpen(true);
     }
   };
 
@@ -89,24 +95,30 @@ export function InventoryTable({ data }: InventoryTableProps) {
   return (
     <>
     <div className="bg-card rounded-lg shadow-sm">
-      <div className="p-4">
+      <div className="p-4 flex gap-2">
         <Input
-          placeholder="Search items by name, brand, category, or SKU..."
+          placeholder="Cari item berdasarkan nama, SKU, dll..."
           value={filter}
           onChange={e => setFilter(e.target.value)}
           className="max-w-sm"
         />
+        <Button asChild variant="outline" size="icon">
+          <Link href="/inventory/scan">
+            <QrCodeIcon className="h-4 w-4"/>
+            <span className="sr-only">Pindai QR Code</span>
+          </Link>
+        </Button>
       </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Image</TableHead>
+              <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
               <TableHead>Item Name</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead className="hidden md:table-cell">SKU</TableHead>
+              <TableHead className="hidden lg:table-cell">Category</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -116,7 +128,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
             {filteredData.length > 0 ? (
               filteredData.map(item => (
                 <TableRow key={item.id}>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Image
                       src={item.image}
                       alt={item.name}
@@ -130,13 +142,13 @@ export function InventoryTable({ data }: InventoryTableProps) {
                     <div className="font-medium">{item.name}</div>
                     <div className="text-sm text-muted-foreground">{item.brand}</div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                  <TableCell>{item.category}</TableCell>
+                  <TableCell className="font-mono text-xs hidden md:table-cell">{item.id}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{item.category}</TableCell>
                   <TableCell className="text-right">
                     <span className="font-bold">{item.quantity}</span>
                     <span className="text-muted-foreground"> {item.unit}</span>
                   </TableCell>
-                  <TableCell>{getStockStatus(item)}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{getStockStatus(item)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -147,6 +159,10 @@ export function InventoryTable({ data }: InventoryTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                         <DropdownMenuItem onClick={() => handleActionClick(item, 'qrcode')}>
+                            <QrCodeIcon className="mr-2 h-4 w-4" />
+                            QR Code
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleActionClick(item, 'reduce')}>
                           Reduce Stock
                         </DropdownMenuItem>
@@ -209,6 +225,26 @@ export function InventoryTable({ data }: InventoryTableProps) {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+      )}
+      {selectedItem && (
+         <Dialog open={qrCodeDialogOpen} onOpenChange={setQrCodeDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>QR Code for: {selectedItem.name}</DialogTitle>
+                    <DialogDescription>
+                        SKU: {selectedItem.id}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-center p-4 bg-white rounded-md">
+                    <QRCode
+                        size={256}
+                        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                        value={selectedItem.id}
+                        viewBox={`0 0 256 256`}
+                    />
+                </div>
+            </DialogContent>
+         </Dialog>
       )}
     </>
   );

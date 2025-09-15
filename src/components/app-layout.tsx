@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useContext } from 'react';
+import Image from 'next/image';
 import {
   SidebarProvider,
   Sidebar,
@@ -19,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { MobileBottomNav } from './mobile-bottom-nav';
 
 const getRoleDisplayName = (role: UserRole) => {
     switch(role) {
@@ -59,10 +61,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar className="hidden md:block">
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <Warehouse className="w-8 h-8 text-sidebar-primary" />
+            <Image src="/logo.png" alt="Gudang Pintar Logo" width={40} height={40} />
             <h1 className="text-xl font-bold text-sidebar-foreground">Gudang Pintar</h1>
           </div>
         </SidebarHeader>
@@ -80,9 +82,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center justify-between p-4 border-b bg-background md:justify-end">
-          <SidebarTrigger className="md:hidden" />
-          <div className="flex items-center gap-4">
+        <header className="flex h-16 items-center justify-between p-4 border-b bg-background md:justify-end">
+          <div className="w-8 md:hidden"></div>
+          <div className="flex-1 text-center md:hidden">
+            <h1 className="text-lg font-bold">GUDANG PINTAR</h1>
+          </div>
+          <div className="hidden md:flex items-center gap-4">
             <Avatar>
               <AvatarImage src="https://placehold.co/100x100.png" alt="@user" />
               <AvatarFallback>{getAvatarFallback(role)}</AvatarFallback>
@@ -92,8 +97,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
           </div>
+           <div className="w-8 md:hidden"></div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">{children}</main>
+        <MobileBottomNav role={role} onLogout={handleLogout} userEmail={user.email || ''} />
       </SidebarInset>
     </SidebarProvider>
   );

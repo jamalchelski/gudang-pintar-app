@@ -28,9 +28,10 @@ interface EditItemDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   item: InventoryItem;
+  onClose?: () => void;
 }
 
-export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps) {
+export function EditItemDialog({ isOpen, setIsOpen, item, onClose }: EditItemDialogProps) {
   const { toast } = useToast();
   const { categories, units, editItem } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,13 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
   const handleSelectChange = (id: 'category' | 'unit', value: string) => {
     setFormData(prev => ({...prev, [id]: value }));
   }
+  
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) {
+        onClose();
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +70,13 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
         title: 'Item Diperbarui',
         description: `Item ${formData.name} telah berhasil diperbarui.`,
       });
-      setIsOpen(false);
+      handleClose();
     }
     setLoading(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {if(!open) handleClose()}}>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -77,16 +85,16 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
               Perbarui detail untuk item inventaris ini. SKU tidak dapat diubah.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="id">SKU / Item ID</Label>
               <Input id="id" value={formData.id} disabled />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="name">Nama Item</Label>
               <Input id="name" value={formData.name} onChange={handleChange} />
             </div>
-             <div className="space-y-2">
+             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="brand">Merek</Label>
               <Input id="brand" value={formData.brand} onChange={handleChange} />
             </div>
@@ -130,7 +138,7 @@ export function EditItemDialog({ isOpen, setIsOpen, item }: EditItemDialogProps)
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Batal
             </Button>
             <Button type="submit" disabled={loading}>

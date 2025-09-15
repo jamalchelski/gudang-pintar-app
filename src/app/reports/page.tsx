@@ -13,9 +13,9 @@ export default function ReportsPage() {
       <PageHeader title="Laporan Transaksi" />
       <Tabs defaultValue="retrieval">
         <TabsList>
-          <TabsTrigger value="retrieval">Riwayat Pengambilan</TabsTrigger>
-          <TabsTrigger value="incoming">Riwayat Barang Masuk</TabsTrigger>
-          <TabsTrigger value="stock-take">Riwayat Stock Take</TabsTrigger>
+          <TabsTrigger value="retrieval">Pengambilan</TabsTrigger>
+          <TabsTrigger value="incoming">Barang Masuk</TabsTrigger>
+          <TabsTrigger value="stock-take">Stock Take</TabsTrigger>
         </TabsList>
         <TabsContent value="retrieval" className="mt-4">
           <RetrievalLogTable />

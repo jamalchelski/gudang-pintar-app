@@ -4,10 +4,10 @@
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { InventoryItem, UserRole, Category, Unit, PickingListItem, RetrievalLog, IncomingLog, StockTakeLog, StockTakeItemDetail, ReceivingItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentReference, query, orderBy } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, writeBatch, setDoc, getDoc, deleteDoc, addDoc, runTransaction, DocumentReference, query, orderBy, collectionGroup } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { MOCK_INVENTORY, MOCK_CATEGORIES, MOCK_UNITS } from '@/lib/mock-data';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { PoData } from '@/components/receiving/create-po-form';
 
@@ -36,10 +36,11 @@ interface AppContextType {
   addItemToPickingList: (item: InventoryItem) => void;
   removeItemFromPickingList: (itemId: string) => void;
   updatePickingListQuantity: (itemId: string, quantity: number) => void;
-  processPickingList: (poNumber?: string) => Promise<void>;
+  processPickingList: () => Promise<void>;
   importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
   submitStockTake: (counts: Record<string, number>) => Promise<boolean>;
   receiveItemsForPo: (poData: PoData, items: ReceivingItem[]) => Promise<boolean>;
+  deleteAllData: (password: string) => Promise<boolean>;
   loading: boolean;
   user: User | null;
 }
@@ -70,6 +71,7 @@ export const AppContext = createContext<AppContextType>({
   importInventory: async () => false,
   submitStockTake: async () => false,
   receiveItemsForPo: async () => false,
+  deleteAllData: async () => false,
   loading: true,
   user: null,
 });
@@ -115,6 +117,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [router, pathname]);
 
+  const fetchAllData = useCallback(async (shouldSeed = false) => {
+      setLoading(true);
+      await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
+      await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
+      await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
+      await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
+      await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+      await fetchCollection('stock_take_logs', setStockTakeLogs, [], false);
+      setLoading(false);
+       if(shouldSeed) {
+        toast({
+            title: 'Database Initialized',
+            description: 'Mock data has been added to Firestore.',
+          });
+      }
+  }, []);
 
   const fetchCollection = useCallback(
     async <T extends {id: string, name?: string}>(
@@ -154,8 +172,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       
       setter(data);
 
-      return snapshot.empty && shouldSeed;
-
     } catch (error) {
       console.error(`Error fetching ${collectionName}:`, error);
       toast({
@@ -163,38 +179,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         description: `Gagal mengambil data ${collectionName}.`,
         variant: 'destructive',
       });
-      return false;
     }
   }, [toast]);
 
   useEffect(() => {
     if (!user) return;
-
-    const fetchAllData = async () => {
-      setLoading(true);
-      const inventorySnapshot = await getDocs(collection(db, 'inventory'));
-      const shouldSeed = inventorySnapshot.empty;
-      
-      await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
-      await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
-      await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
-      await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
-      await fetchCollection('incoming_logs', setIncomingLogs, [], false);
-      await fetchCollection('stock_take_logs', setStockTakeLogs, [], false);
-
-
-      if(shouldSeed) {
-        toast({
-            title: 'Database Initialized',
-            description: 'Mock data has been added to Firestore.',
-          });
-      }
-
-      setLoading(false);
+    const checkAndSeed = async () => {
+        const inventorySnapshot = await getDocs(collection(db, 'inventory'));
+        const shouldSeed = inventorySnapshot.empty;
+        await fetchAllData(shouldSeed);
     };
-
-    fetchAllData();
-  }, [toast, user, fetchCollection]);
+    checkAndSeed();
+  }, [user, fetchAllData]);
 
   const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
     if (!user || role !== 'admin') {
@@ -490,7 +486,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setPickingList(prev => prev.map(pi => pi.id === itemId ? { ...pi, quantity: Math.max(0, Math.min(quantity, inventoryItem.quantity)) } : pi));
   };
 
-  const processPickingList = async (poNumber?: string) => {
+  const processPickingList = async () => {
     if (pickingList.length === 0) {
       toast({ title: 'List is empty', description: 'There are no items to process.', variant: 'destructive' });
       return;
@@ -537,7 +533,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 quantityRetrieved: pickedItem.quantity,
                 user: user.email ?? 'unknown',
                 timestamp: new Date().toISOString(),
-                ...(poNumber && { poNumber })
             };
 
             const logRef = doc(collection(db, "retrieval_logs"));
@@ -545,8 +540,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
       });
       
-      await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
-      await fetchCollection('inventory', setInventory, [], false);
+      await fetchAllData(false);
       setPickingList([]);
 
       toast({ title: 'Success', description: 'Sparepart retrieval processed successfully.' });
@@ -569,57 +563,43 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
         setLoading(true);
 
-        const chunks = [];
-        for (let i = 0; i < items.length; i += 50) {
-            chunks.push(items.slice(i, i + 50));
-        }
+        const itemPromises = items.map(itemData => runTransaction(db, async (transaction) => {
+            const itemRef = doc(db, 'inventory', itemData.id);
+            const itemDoc = await transaction.get(itemRef);
 
-        let success = true;
+            const newItem: InventoryItem = {
+                ...itemData,
+                last_updated: new Date().toISOString(),
+            };
 
-        for (const chunk of chunks) {
-            try {
-                const batch = writeBatch(db);
-                for (const item of chunk) {
-                    const itemRef = doc(db, 'inventory', item.id);
-                     const newItemData: InventoryItem = {
-                        ...item,
-                        last_updated: new Date().toISOString(),
-                    };
-                    batch.set(itemRef, newItemData, { merge: true });
-
-                    // This part is tricky without reading first, so logging is simplified.
-                    // For accurate logging, a transaction per item is better.
-                    const logEntry: Omit<IncomingLog, 'id'> = {
-                        itemId: newItemData.id,
-                        itemName: newItemData.name,
-                        quantityAdded: newItemData.quantity, // This assumes import sets the new quantity
-                        newQuantity: newItemData.quantity,
-                        type: 'stock_update', // Assuming update, could be new_item
-                        user: user.email ?? 'unknown',
-                        timestamp: new Date().toISOString(),
-                        poNumber: 'IMPORT',
-                    };
-                    const logRef = doc(collection(db, 'incoming_logs'));
-                    batch.set(logRef, logEntry);
-                }
-                await batch.commit();
-            } catch (e) {
-                console.error('Failed to import a batch:', e);
-                toast({
-                    title: 'Import Batch Failed',
-                    description: 'One of the data batches failed to import. Check console for details.',
-                    variant: 'destructive',
-                });
-                success = false;
+            if (itemDoc.exists()) {
+                // Item exists, update it
+                transaction.update(itemRef, newItem);
+            } else {
+                // Item does not exist, create it
+                transaction.set(itemRef, newItem);
             }
+
+            // For simplicity, we're not creating detailed logs on import to avoid read-after-write issues in transactions.
+            // A more complex system might queue these logs separately.
+        }));
+
+        try {
+            await Promise.all(itemPromises);
+            // Refetch all data to reflect the imported changes accurately.
+            await fetchAllData(false);
+            setLoading(false);
+            return true;
+        } catch (error) {
+            console.error("Error during inventory import transaction: ", error);
+            toast({
+                title: "Import Error",
+                description: "An error occurred while importing data. Some items may not have been saved.",
+                variant: 'destructive'
+            });
+            setLoading(false);
+            return false;
         }
-
-        // Refetch data to ensure UI is up-to-date
-        await fetchCollection('inventory', setInventory, [], false);
-        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
-
-        setLoading(false);
-        return success;
     };
 
   const submitStockTake = async (counts: Record<string, number>): Promise<boolean> => {
@@ -753,8 +733,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
 
         // Refetch data to update UI state
-        await fetchCollection('inventory', setInventory, [], false);
-        await fetchCollection('incoming_logs', setIncomingLogs, [], false);
+        await fetchAllData(false);
         
         toast({
             title: "Receiving Successful",
@@ -774,6 +753,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
   }
+  
+    const deleteAllData = async (password: string): Promise<boolean> => {
+        if (!user || role !== 'admin') {
+            toast({ title: 'Permission Denied', description: 'Only administrators can perform this action.', variant: 'destructive' });
+            return false;
+        }
+
+        try {
+            const credential = EmailAuthProvider.credential(user.email!, password);
+            await reauthenticateWithCredential(user, credential);
+        } catch (error) {
+            console.error("Re-authentication failed:", error);
+            return false;
+        }
+
+        setLoading(true);
+        try {
+            const collectionsToDelete = ['inventory', 'categories', 'units', 'incoming_logs', 'retrieval_logs', 'stock_take_logs'];
+            for (const collectionName of collectionsToDelete) {
+                const snapshot = await getDocs(collection(db, collectionName));
+                const batch = writeBatch(db);
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+            }
+
+            // After deleting, re-seed the database
+            await fetchAllData(true);
+
+            return true;
+        } catch (error) {
+            console.error("Error deleting all data:", error);
+            toast({ title: "Error", description: "Failed to delete all data.", variant: 'destructive' });
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
   const value = {
     role,
@@ -801,6 +820,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     importInventory,
     submitStockTake,
     receiveItemsForPo,
+    deleteAllData,
     loading,
     user,
   };

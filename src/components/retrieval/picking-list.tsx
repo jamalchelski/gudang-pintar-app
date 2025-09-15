@@ -29,7 +29,7 @@ export function PickingList() {
   return (
     <Card>
       <CardContent className="p-0">
-        <ScrollArea className="h-[calc(70vh-80px)]">
+        <ScrollArea className="h-[calc(70vh-200px)] lg:h-auto lg:max-h-[300px]">
         <div className="flex flex-col">
           {pickingList.map(item => {
             const originalItem = inventory.find(i => i.id === item.id);

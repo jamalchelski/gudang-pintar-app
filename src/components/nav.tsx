@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   Boxes,
@@ -16,6 +16,7 @@ import {
   ArchiveRestore,
   UserCircle,
   BrainCircuit,
+  QrCode,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -69,23 +70,42 @@ export function Nav({ role }: NavProps) {
 
   return (
     <SidebarMenu>
-      {navItems.map(item => (
-        <SidebarMenuItem key={item.href}>
-          <Link href={item.href}>
-            <SidebarMenuButton
-              isActive={pathname === item.href}
-              className={cn(
-                'w-full justify-start',
-                pathname === item.href &&
-                  'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90'
-              )}
-            >
-              <item.icon className="h-5 w-5 mr-3" />
-              <span>{item.label}</span>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-      ))}
+      {navItems.map(item => {
+        const isInventory = item.href === '/inventory';
+        const isActive = isInventory ? pathname.startsWith('/inventory') : pathname === item.href;
+
+        return (
+            <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    className={cn(
+                        'w-full justify-start',
+                        isActive &&
+                        'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90'
+                    )}
+                    >
+                    <Link href={item.href}>
+                        <item.icon className="h-5 w-5 mr-3" />
+                        <span>{item.label}</span>
+                    </Link>
+                </SidebarMenuButton>
+            {isInventory && (
+                 <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                        <SidebarMenuSubButton
+                            href="/inventory/scan"
+                            isActive={pathname === '/inventory/scan'}
+                        >
+                            <QrCode />
+                            <span>Scan Item</span>
+                        </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                </SidebarMenuSub>
+            )}
+            </SidebarMenuItem>
+        )
+      })}
     </SidebarMenu>
   );
 }

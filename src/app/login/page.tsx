@@ -3,6 +3,7 @@
 
 import { useState, FormEvent, useContext } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -50,8 +51,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-            <Warehouse className="h-8 w-8 text-primary-foreground" />
+          <div className="mx-auto mb-4">
+            <Image src="/logo.png" alt="Gudang Pintar Logo" width={80} height={80} priority />
           </div>
           <CardTitle className="text-2xl">Gudang Pintar</CardTitle>
           <CardDescription>Silakan masuk untuk melanjutkan</CardDescription>
@@ -90,6 +91,7 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
+           <p className="text-center text-xs text-muted-foreground pt-4">V.1.2.1 Alpha</p>
         </CardContent>
       </Card>
     </div>
