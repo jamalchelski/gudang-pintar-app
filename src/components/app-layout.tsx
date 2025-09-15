@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useContext } from 'react';
+import Image from 'next/image';
 import {
   SidebarProvider,
   Sidebar,
@@ -63,7 +64,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar className="hidden md:block">
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <Warehouse className="w-8 h-8 text-sidebar-primary" />
+            <Image src="/logo.png" alt="Gudang Pintar Logo" width={40} height={40} className="rounded-full" />
             <h1 className="text-xl font-bold text-sidebar-foreground">Gudang Pintar</h1>
           </div>
         </SidebarHeader>
