@@ -20,14 +20,19 @@ import {
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function RetrievalPage() {
   const { pickingList, processPickingList, loading } = useContext(AppContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reference, setReference] = useState('');
 
   const handleProcess = async () => {
-    await processPickingList();
+    await processPickingList(reference);
     setIsDialogOpen(false);
+    setReference(''); // Reset reference after processing
   }
 
   return (
@@ -68,6 +73,17 @@ export default function RetrievalPage() {
                         </TableBody>
                     </Table>
                 </ScrollArea>
+
+                <div className="space-y-2">
+                    <Label htmlFor="reference">Keterangan</Label>
+                    <Textarea 
+                        id="reference"
+                        placeholder="cth: Dipakai untuk perbaikan unit A-10"
+                        value={reference}
+                        onChange={(e) => setReference(e.target.value)}
+                    />
+                </div>
+
                 <DialogFooter>
                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
                      <Button onClick={handleProcess} disabled={loading}>

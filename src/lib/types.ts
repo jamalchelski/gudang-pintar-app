@@ -39,7 +39,7 @@ export type RetrievalLog = {
     quantityRetrieved: number;
     user: string;
     timestamp: string;
-    poNumber?: string;
+    reference?: string;
 }
 
 export type IncomingLog = {

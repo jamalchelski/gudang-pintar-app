@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { InventoryItem } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '../ui/textarea';
 
 interface ReduceStockDialogProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ interface ReduceStockDialogProps {
 export function ReduceStockDialog({ isOpen, setIsOpen, item, onClose }: ReduceStockDialogProps) {
   const { reduceStock } = useContext(AppContext);
   const [amount, setAmount] = useState<number>(1);
-  const [poNumber, setPoNumber] = useState('');
+  const [reference, setReference] = useState('');
   const { toast } = useToast();
 
   const handleClose = () => {
@@ -40,9 +41,9 @@ export function ReduceStockDialog({ isOpen, setIsOpen, item, onClose }: ReduceSt
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount > 0 && amount <= item.quantity) {
-      reduceStock(item.id, amount, poNumber);
+      reduceStock(item.id, amount, reference);
       setAmount(1);
-      setPoNumber('');
+      setReference('');
       handleClose();
     } else {
         toast({ title: "Error", description: "Jumlah tidak valid.", variant: "destructive" });
@@ -54,27 +55,27 @@ export function ReduceStockDialog({ isOpen, setIsOpen, item, onClose }: ReduceSt
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Reduce Stock: {item.name}</DialogTitle>
+            <DialogTitle>Kurangi Stok: {item.name}</DialogTitle>
             <DialogDescription>
-              Current quantity: {item.quantity} {item.unit}. Enter the amount to reduce.
+              Stok saat ini: {item.quantity} {item.unit}. Masukkan jumlah yang akan dikurangi.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
              <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="po-number" className="text-right">
-                No. PO/Ref
+              <Label htmlFor="reference" className="text-right">
+                Keterangan
               </Label>
-              <Input
-                id="po-number"
-                value={poNumber}
-                onChange={e => setPoNumber(e.target.value)}
+               <Textarea
+                id="reference"
+                value={reference}
+                onChange={e => setReference(e.target.value)}
                 className="col-span-3"
-                placeholder="(Opsional)"
+                placeholder="cth: Dipakai untuk perbaikan unit A-10"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="amount" className="text-right">
-                Amount
+                Jumlah
               </Label>
               <Input
                 id="amount"
@@ -89,9 +90,9 @@ export function ReduceStockDialog({ isOpen, setIsOpen, item, onClose }: ReduceSt
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
+              Batal
             </Button>
-            <Button type="submit">Confirm Reduction</Button>
+            <Button type="submit">Konfirmasi Pengurangan</Button>
           </DialogFooter>
         </form>
       </DialogContent>

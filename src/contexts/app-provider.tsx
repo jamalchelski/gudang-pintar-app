@@ -27,7 +27,7 @@ interface AppContextType {
   addItem: (item: OmitOnAdd) => Promise<boolean>;
   editItem: (item: InventoryItem, oldQuantity: number, type?: IncomingLog['type'], poNumber?: string) => Promise<boolean>;
   deleteItem: (itemId: string) => Promise<boolean>;
-  reduceStock: (itemId: string, amount: number, poNumber?: string) => Promise<void>;
+  reduceStock: (itemId: string, amount: number, reference?: string) => Promise<void>;
   updateStock: (itemId: string, newQuantity: number) => void;
   addCategory: (name: string) => Promise<boolean>;
   deleteCategory: (id: string) => Promise<boolean>;
@@ -36,7 +36,7 @@ interface AppContextType {
   addItemToPickingList: (item: InventoryItem) => void;
   removeItemFromPickingList: (itemId: string) => void;
   updatePickingListQuantity: (itemId: string, quantity: number) => void;
-  processPickingList: () => Promise<void>;
+  processPickingList: (reference?: string) => Promise<void>;
   importInventory: (items: Omit<InventoryItem, 'last_updated'>[]) => Promise<boolean>;
   submitStockTake: (counts: Record<string, number>) => Promise<boolean>;
   receiveItemsForPo: (poData: PoData, items: ReceivingItem[]) => Promise<boolean>;
@@ -305,7 +305,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
 
-  const reduceStock = async (itemId: string, amount: number, poNumber?: string) => {
+  const reduceStock = async (itemId: string, amount: number, reference?: string) => {
     if(!user) return;
     const item = inventory.find(i => i.id === itemId);
     if (!item) return;
@@ -324,7 +324,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             quantityRetrieved: amount,
             user: user.email ?? 'unknown',
             timestamp: new Date().toISOString(),
-            ...(poNumber && { poNumber }),
+            ...(reference && { reference }),
         };
 
         const logRef = doc(collection(db, "retrieval_logs"));
@@ -486,7 +486,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setPickingList(prev => prev.map(pi => pi.id === itemId ? { ...pi, quantity: Math.max(0, Math.min(quantity, inventoryItem.quantity)) } : pi));
   };
 
-  const processPickingList = async () => {
+  const processPickingList = async (reference?: string) => {
     if (pickingList.length === 0) {
       toast({ title: 'List is empty', description: 'There are no items to process.', variant: 'destructive' });
       return;
@@ -533,6 +533,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 quantityRetrieved: pickedItem.quantity,
                 user: user.email ?? 'unknown',
                 timestamp: new Date().toISOString(),
+                ...(reference && { reference }),
             };
 
             const logRef = doc(collection(db, "retrieval_logs"));

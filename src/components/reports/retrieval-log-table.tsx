@@ -38,6 +38,7 @@ export function RetrievalLogTable() {
         'Item Name': log.itemName,
         'Quantity Retrieved': log.quantityRetrieved,
         User: log.user,
+        'Reference': log.reference || '-',
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -64,6 +65,7 @@ export function RetrievalLogTable() {
                 <TableRow>
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Nama Item</TableHead>
+                <TableHead>Keterangan</TableHead>
                 <TableHead className="text-right">Jumlah Diambil</TableHead>
                 <TableHead className="hidden md:table-cell">Pengguna</TableHead>
                 </TableRow>
@@ -77,13 +79,14 @@ export function RetrievalLogTable() {
                         <div className="font-medium">{log.itemName}</div>
                         <div className="text-sm text-muted-foreground font-mono">{log.itemId}</div>
                     </TableCell>
+                    <TableCell className="text-sm">{log.reference || '-'}</TableCell>
                     <TableCell className="text-right font-bold">{log.quantityRetrieved}</TableCell>
                     <TableCell className="hidden md:table-cell">{log.user}</TableCell>
                     </TableRow>
                 ))
                 ) : (
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                     Tidak ada data pengambilan.
                     </TableCell>
                 </TableRow>
