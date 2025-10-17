@@ -23,7 +23,7 @@ export default function Dashboard() {
           <Skeleton className="h-32" />
         </div>
         <div>
-          <h2 className="text-xl font-semibold mb-4">Low Stock Items</h2>
+          <h2 className="text-xl font-semibold mb-4">Daftar Inventaris</h2>
           <Skeleton className="h-64" />
         </div>
       </div>
@@ -81,8 +81,8 @@ export default function Dashboard() {
         </Card>
       </div>
       <div>
-        <h2 className="text-xl font-semibold mb-4">Low Stock Items</h2>
-        <InventoryTable data={lowStockItems} />
+        <h2 className="text-xl font-semibold mb-4">Daftar Inventaris</h2>
+        <InventoryTable data={inventory} />
       </div>
     </div>
   );
