@@ -36,7 +36,6 @@ interface MobileBottomNavProps {
 }
 
 const inventorySubMenu = [
-  { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart, roles: ['admin', 'helpdesk', 'user'] },
   { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore, roles: ['admin', 'helpdesk'] },
   { href: '/reorder', label: 'Reorder', icon: PackageSearch, roles: ['admin', 'helpdesk'] },
   { href: '/stock-take', label: 'Stock Take', icon: ClipboardList, roles: ['admin', 'helpdesk'] },
@@ -51,9 +50,10 @@ export function MobileBottomNav({ role, onLogout, userEmail }: MobileBottomNavPr
 
   const mainNavItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'inventory', label: 'Inventory', icon: Boxes },
-    { href: '/inventory/scan', label: 'Cari', icon: QrCode },
-    { id: 'profile', label: 'Profile', icon: UserCircle },
+    { id: 'inventory', label: 'Inventaris', icon: Boxes },
+    { href: '/inventory/scan', label: 'Pindai', icon: QrCode },
+    { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
+    { id: 'profile', label: 'Profil', icon: UserCircle },
   ];
 
   const filteredInventorySubMenu = inventorySubMenu.filter(item => item.roles.includes(role));
@@ -70,10 +70,10 @@ export function MobileBottomNav({ role, onLogout, userEmail }: MobileBottomNavPr
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border">
-      <div className="grid h-full grid-cols-4 font-medium">
+      <div className="grid h-full grid-cols-5 font-medium">
         {mainNavItems.map((item) => {
           if (item.href) {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href === '/retrieval' && pathname.startsWith('/retrieval'));
             return (
               <NavLink key={item.label} href={item.href} icon={item.icon} label={item.label} isActive={isActive} />
             );
