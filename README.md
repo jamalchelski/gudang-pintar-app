@@ -68,5 +68,5 @@ Memberikan jejak audit lengkap untuk semua pergerakan stok.
 ### 10. Kesiapan API
 Aplikasi ini dilengkapi dengan endpoint API RESTful yang aman (menggunakan API Key) untuk memungkinkan integrasi dengan sistem lain, seperti aplikasi Android, di masa mendatang.
 
-okoksadad
+finish
 
