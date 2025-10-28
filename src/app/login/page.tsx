@@ -54,7 +54,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4">
             <Image src="/logo.png" alt="Gudang Pintar Logo" width={80} height={80} priority />
           </div>
-          <CardTitle className="text-2xl">Gudang Pintar</CardTitle>
+          <CardTitle className="text-xl">OCS CONSUMABLE STOCK</CardTitle>
           <CardDescription>Silakan masuk untuk melanjutkan</CardDescription>
         </CardHeader>
         <CardContent>

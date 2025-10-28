@@ -65,7 +65,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <Image src="/logo.png" alt="Gudang Pintar Logo" width={40} height={40} />
-            <h1 className="text-xl font-bold text-sidebar-foreground">Gudang Pintar</h1>
+            <h1 className="text-lg font-bold text-sidebar-foreground">OCS CONSUMABLE STOCK</h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -85,7 +85,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-16 items-center justify-between p-4 border-b bg-background md:justify-end">
           <div className="w-8 md:hidden"></div>
           <div className="flex-1 text-center md:hidden">
-            <h1 className="text-lg font-bold">GUDANG PINTAR</h1>
+            <h1 className="text-sm font-bold">OCS CONSUMABLE STOCK</h1>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <Avatar>
