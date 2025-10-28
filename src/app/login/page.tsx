@@ -52,7 +52,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <Image src="/logo.png" alt="Gudang Pintar Logo" width={80} height={80} priority />
+            <Image src="/logo.png" alt="OCS CONSUMABLE STOCK Logo" width={120} height={120} priority />
           </div>
           <CardTitle className="text-xl">OCS CONSUMABLE STOCK</CardTitle>
           <CardDescription>Silakan masuk untuk melanjutkan</CardDescription>
