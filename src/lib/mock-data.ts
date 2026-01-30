@@ -1,6 +1,23 @@
-import { InventoryItem, Category, Unit } from './types';
+import { InventoryItem, Category, Unit, UserRole } from './types';
 
-export const MOCK_INVENTORY: InventoryItem[] = [
+const assignRoles = (category: string): UserRole[] => {
+    const teknisiCats = [
+        'Suku Cadang Mesin', 'Sistem Pengereman', 'Kelistrikan', 'Suku Cadang Roda', 
+        'Suspensi & Kaki-kaki', 'Sistem Pendingin', 'Sistem Bahan Bakar', 'Pelumas', 'Filter'
+    ];
+    const sharedCats = ['Komponen Interior', 'Komponen Eksterior', 'Perkakas & Lain-lain'];
+
+    if (teknisiCats.includes(category)) {
+        return ['teknisi'];
+    }
+    if (sharedCats.includes(category)) {
+        return ['teknisi', 'cleaning', 'ipm'];
+    }
+    // As a fallback, make it visible to technicians
+    return ['teknisi'];
+};
+
+const rawInventory: Omit<InventoryItem, 'allowedRoles'>[] = [
   // Existing 8 items
   {
     id: 'SKU-001',
@@ -1204,6 +1221,11 @@ export const MOCK_INVENTORY: InventoryItem[] = [
     image: 'https://placehold.co/400x400.png',
   },
 ];
+
+export const MOCK_INVENTORY: InventoryItem[] = rawInventory.map(item => ({
+    ...item,
+    allowedRoles: assignRoles(item.category)
+}));
 
 
 export const MOCK_CATEGORIES: Category[] = [

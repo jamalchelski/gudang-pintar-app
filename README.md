@@ -54,7 +54,7 @@ Fitur canggih yang memberikan wawasan mendalam tentang kesehatan inventaris Anda
 - **Rekomendasi Tindakan**: AI memberikan ringkasan eksekutif dan daftar rekomendasi yang dapat ditindaklanjuti (misalnya, "Prioritaskan pemesanan ulang Busi Champion karena stok menipis dan permintaan tinggi").
 - **Ekspor ke PDF**: Laporan analisis dapat diekspor menjadi file PDF untuk dibagikan.
 
-### 8. Import & Export Data
+### 8. Import & Export Data-
 Untuk manajemen data dalam jumlah besar, fitur ini sangat berguna.
 - **Export ke CSV**: Ekspor seluruh data inventaris atau daftar reorder ke dalam format file CSV.
 - **Import dari CSV**: Tambahkan atau perbarui data inventaris secara massal dengan mengunggah file CSV. Sistem menyediakan template untuk memastikan format data yang benar.
@@ -68,5 +68,5 @@ Memberikan jejak audit lengkap untuk semua pergerakan stok.
 ### 10. Kesiapan API
 Aplikasi ini dilengkapi dengan endpoint API RESTful yang aman (menggunakan API Key) untuk memungkinkan integrasi dengan sistem lain, seperti aplikasi Android, di masa mendatang.
 
-### Terimakasih
+finish
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useContext, useRef, useState } from 'react';
@@ -9,7 +10,7 @@ import { Upload, Download, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppContext } from '@/contexts/app-provider';
 import { useToast } from '@/hooks/use-toast';
-import { InventoryItem } from '@/lib/types';
+import { InventoryItem, UserRole } from '@/lib/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +46,12 @@ export default function ImportExportPage() {
       });
       return;
     }
-    const worksheet = XLSX.utils.json_to_sheet(inventory);
+    const dataToExport = inventory.map(item => ({
+        ...item,
+        allowedRoles: item.allowedRoles?.join(',')
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
     XLSX.writeFile(workbook, `inventory.${format}`);
@@ -61,7 +67,8 @@ export default function ImportExportPage() {
       quantity: 15,
       min_stock: 10,
       max_stock: 50,
-      image: 'https://placehold.co/400x400.png'
+      image: 'https://placehold.co/400x400.png',
+      allowedRoles: 'teknisi'
     }];
     const worksheet = XLSX.utils.json_to_sheet(templateData);
     const workbook = XLSX.utils.book_new();
@@ -97,7 +104,8 @@ export default function ImportExportPage() {
             quantity: Number(row.quantity),
             min_stock: Number(row.min_stock),
             max_stock: Number(row.max_stock),
-            image: String(row.image || 'https://placehold.co/400x400.png')
+            image: String(row.image || 'https://placehold.co/400x400.png'),
+            allowedRoles: row.allowedRoles ? String(row.allowedRoles).split(',').map((r: string) => r.trim() as UserRole) : ['teknisi', 'cleaning', 'ipm']
         }));
 
         const success = await importInventory(importedItems);

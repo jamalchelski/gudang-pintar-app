@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useContext } from 'react';
@@ -27,6 +28,9 @@ const getRoleDisplayName = (role: UserRole) => {
         case 'admin': return 'Administrator';
         case 'user': return 'Warehouse User';
         case 'helpdesk': return 'Helpdesk';
+        case 'teknisi': return 'Teknisi';
+        case 'cleaning': return 'Cleaning';
+        case 'ipm': return 'IPM';
         default: return 'User';
     }
 }
@@ -36,6 +40,9 @@ const getAvatarFallback = (role: UserRole) => {
         case 'admin': return 'A';
         case 'user': return 'U';
         case 'helpdesk': return 'H';
+        case 'teknisi': return 'T';
+        case 'cleaning': return 'C';
+        case 'ipm': return 'I';
         default: return 'U';
     }
 }
@@ -64,8 +71,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar className="hidden md:block">
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Gudang Pintar Logo" width={40} height={40} />
-            <h1 className="text-xl font-bold text-sidebar-foreground">Gudang Pintar</h1>
+            <Image src="/logo.png" alt="Consumable App Logo" width={40} height={40} />
+            <div>
+                <h1 className="text-lg font-bold text-sidebar-foreground">Consumable App</h1>
+                <p className="text-xs text-sidebar-foreground/70">ISS-MRCCC</p>
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -85,7 +95,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-16 items-center justify-between p-4 border-b bg-background md:justify-end">
           <div className="w-8 md:hidden"></div>
           <div className="flex-1 text-center md:hidden">
-            <h1 className="text-lg font-bold">GUDANG PINTAR</h1>
+            <div>
+                <h1 className="text-sm font-bold">Consumable App</h1>
+                <p className="text-xs text-muted-foreground">ISS-MRCCC</p>
+            </div>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <Avatar>

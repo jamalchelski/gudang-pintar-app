@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -31,6 +32,11 @@ const baseNavItems = [
   { href: '/retrieval', label: 'Pengambilan', icon: ShoppingCart },
 ];
 
+const userNavItems = [
+    ...baseNavItems,
+    { href: '/profile', label: 'Profil', icon: UserCircle },
+];
+
 const helpdeskNavItems = [
     ...baseNavItems,
     { href: '/receiving', label: 'Penerimaan', icon: ArchiveRestore },
@@ -46,17 +52,15 @@ const adminNavItems = [
   { href: '/reports', label: 'Laporan', icon: FileText },
 ];
 
-const userNavItems = [
-    ...baseNavItems,
-    { href: '/profile', label: 'Profil', icon: UserCircle },
-];
-
 const getNavItems = (role: UserRole) => {
     switch (role) {
         case 'admin':
             return adminNavItems;
         case 'helpdesk':
             return helpdeskNavItems;
+        case 'teknisi':
+        case 'cleaning':
+        case 'ipm':
         case 'user':
             return userNavItems;
         default:

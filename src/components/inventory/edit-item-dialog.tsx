@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useContext, useEffect } from 'react';
@@ -21,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { InventoryItem } from '@/lib/types';
+import { InventoryItem, UserRole } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
+import { Checkbox } from '../ui/checkbox';
 
 interface EditItemDialogProps {
   isOpen: boolean;
@@ -30,6 +32,8 @@ interface EditItemDialogProps {
   item: InventoryItem;
   onClose?: () => void;
 }
+
+const ROLES_TO_ASSIGN: UserRole[] = ['teknisi', 'cleaning', 'ipm'];
 
 export function EditItemDialog({ isOpen, setIsOpen, item, onClose }: EditItemDialogProps) {
   const { toast } = useToast();
@@ -39,7 +43,7 @@ export function EditItemDialog({ isOpen, setIsOpen, item, onClose }: EditItemDia
   const [originalQuantity, setOriginalQuantity] = useState<number>(item.quantity);
 
   useEffect(() => {
-    setFormData(item);
+    setFormData({...item, allowedRoles: item.allowedRoles || []});
     setOriginalQuantity(item.quantity);
   }, [item]);
 
@@ -52,6 +56,17 @@ export function EditItemDialog({ isOpen, setIsOpen, item, onClose }: EditItemDia
     setFormData(prev => ({...prev, [id]: value }));
   }
   
+  const handleRolesChange = (role: UserRole, isChecked: boolean) => {
+    setFormData(prev => {
+        const currentRoles = prev.allowedRoles || [];
+        if (isChecked) {
+            return { ...prev, allowedRoles: [...currentRoles, role] };
+        } else {
+            return { ...prev, allowedRoles: currentRoles.filter(r => r !== role) };
+        }
+    });
+};
+
   const handleClose = () => {
     setIsOpen(false);
     if (onClose) {
@@ -135,6 +150,23 @@ export function EditItemDialog({ isOpen, setIsOpen, item, onClose }: EditItemDia
             <div className="space-y-2">
               <Label htmlFor="max_stock">Stok Maks</Label>
               <Input id="max_stock" type="number" value={formData.max_stock} onChange={handleChange} />
+            </div>
+             <div className="space-y-2 sm:col-span-2">
+                <Label>Allowed Roles</Label>
+                <div className="flex flex-wrap gap-x-6 gap-y-2 p-2 border rounded-md">
+                    {ROLES_TO_ASSIGN.map((role) => (
+                    <div key={role} className="flex items-center space-x-2">
+                        <Checkbox
+                        id={`edit-role-${role}`}
+                        checked={formData.allowedRoles?.includes(role)}
+                        onCheckedChange={(checked) => {
+                            handleRolesChange(role, checked as boolean);
+                        }}
+                        />
+                        <Label htmlFor={`edit-role-${role}`} className="capitalize font-normal text-sm">{role}</Label>
+                    </div>
+                    ))}
+                </div>
             </div>
           </div>
           <DialogFooter>

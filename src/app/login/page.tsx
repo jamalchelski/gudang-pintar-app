@@ -35,6 +35,12 @@ export default function LoginPage() {
         setRole('admin');
       } else if (email.startsWith('helpdesk')) {
         setRole('helpdesk');
+      } else if (email.startsWith('teknisi')) {
+        setRole('teknisi');
+      } else if (email.startsWith('cleaning')) {
+        setRole('cleaning');
+      } else if (email.startsWith('ipm')) {
+        setRole('ipm');
       }
       else {
         setRole('user');
@@ -52,10 +58,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <Image src="/logo.png" alt="Gudang Pintar Logo" width={80} height={80} priority />
+            <Image src="/logo.png" alt="Consumable App Logo" width={120} height={120} priority />
           </div>
-          <CardTitle className="text-2xl">Gudang Pintar</CardTitle>
-          <CardDescription>Silakan masuk untuk melanjutkan</CardDescription>
+          <CardTitle className="text-xl">Consumable App</CardTitle>
+          <CardDescription>ISS-MRCCC</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

@@ -1,4 +1,7 @@
 
+
+export type UserRole = 'admin' | 'user' | 'helpdesk' | 'teknisi' | 'cleaning' | 'ipm';
+
 export type InventoryItem = {
   id: string;
   name: string;
@@ -10,6 +13,7 @@ export type InventoryItem = {
   max_stock: number;
   last_updated: string;
   image: string;
+  allowedRoles?: UserRole[];
 };
 
 export type PickingListItem = InventoryItem & {
@@ -19,8 +23,6 @@ export type PickingListItem = InventoryItem & {
 export type ReceivingItem = InventoryItem & {
   // quantity in this context is the amount to be received
 };
-
-export type UserRole = 'admin' | 'user' | 'helpdesk';
 
 export type Category = {
   id: string;
@@ -39,7 +41,7 @@ export type RetrievalLog = {
     quantityRetrieved: number;
     user: string;
     timestamp: string;
-    poNumber?: string;
+    reference?: string;
 }
 
 export type IncomingLog = {
