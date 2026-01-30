@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useContext } from 'react';
@@ -21,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { InventoryItem } from '@/lib/types';
+import { InventoryItem, UserRole } from '@/lib/types';
 import { AppContext } from '@/contexts/app-provider';
+import { Checkbox } from '../ui/checkbox';
 
 type OmitOnAdded = Omit<InventoryItem, 'last_updated' | 'image'>;
 
@@ -31,6 +33,9 @@ interface AddItemDialogProps {
   setIsOpen: (open: boolean) => void;
   onItemAdded: (item: OmitOnAdded) => Promise<boolean>;
 }
+
+const ROLES_TO_ASSIGN: UserRole[] = ['teknisi', 'cleaning', 'ipm'];
+
 
 export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogProps) {
   const { toast } = useToast();
@@ -45,6 +50,7 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
       quantity: 0,
       min_stock: 0,
       max_stock: 0,
+      allowedRoles: [] as UserRole[],
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +61,17 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
   const handleSelectChange = (id: 'category' | 'unit', value: string) => {
     setFormData(prev => ({...prev, [id]: value }));
   }
+
+  const handleRolesChange = (role: UserRole, isChecked: boolean) => {
+    setFormData(prev => {
+        const currentRoles = prev.allowedRoles || [];
+        if (isChecked) {
+            return { ...prev, allowedRoles: [...currentRoles, role] };
+        } else {
+            return { ...prev, allowedRoles: currentRoles.filter(r => r !== role) };
+        }
+    });
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +112,7 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
         quantity: 0,
         min_stock: 0,
         max_stock: 0,
+        allowedRoles: [],
       });
     }
     // Error toast is handled in the context
@@ -162,6 +180,23 @@ export function AddItemDialog({ isOpen, setIsOpen, onItemAdded }: AddItemDialogP
               <Label htmlFor="max_stock">Max Stock</Label>
               <Input id="max_stock" type="number" value={formData.max_stock} onChange={handleChange} />
             </div>
+            <div className="space-y-2 sm:col-span-2">
+                <Label>Allowed Roles</Label>
+                <div className="flex flex-wrap gap-x-6 gap-y-2 p-2 border rounded-md">
+                    {ROLES_TO_ASSIGN.map((role) => (
+                    <div key={role} className="flex items-center space-x-2">
+                        <Checkbox
+                        id={`role-${role}`}
+                        checked={formData.allowedRoles?.includes(role)}
+                        onCheckedChange={(checked) => {
+                            handleRolesChange(role, checked as boolean);
+                        }}
+                        />
+                        <Label htmlFor={`role-${role}`} className="capitalize font-normal text-sm">{role}</Label>
+                    </div>
+                    ))}
+                </div>
+                </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>

@@ -35,6 +35,12 @@ export default function LoginPage() {
         setRole('admin');
       } else if (email.startsWith('helpdesk')) {
         setRole('helpdesk');
+      } else if (email.startsWith('teknisi')) {
+        setRole('teknisi');
+      } else if (email.startsWith('cleaning')) {
+        setRole('cleaning');
+      } else if (email.startsWith('ipm')) {
+        setRole('ipm');
       }
       else {
         setRole('user');

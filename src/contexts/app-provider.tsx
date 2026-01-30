@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -79,6 +80,7 @@ export const AppContext = createContext<AppContextType>({
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [role, setRole] = useState<UserRole>('user');
+  const [rawInventory, setRawInventory] = useState<InventoryItem[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -101,6 +103,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           userRole = 'admin';
         } else if (currentUser.email?.startsWith('helpdesk')) {
           userRole = 'helpdesk';
+        } else if (currentUser.email?.startsWith('teknisi')) {
+            userRole = 'teknisi';
+        } else if (currentUser.email?.startsWith('cleaning')) {
+            userRole = 'cleaning';
+        } else if (currentUser.email?.startsWith('ipm')) {
+            userRole = 'ipm';
         }
         setRole(userRole);
         if (pathname === '/login') {
@@ -119,7 +127,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAllData = useCallback(async (shouldSeed = false) => {
       setLoading(true);
-      await fetchCollection('inventory', setInventory, MOCK_INVENTORY, shouldSeed);
+      await fetchCollection('inventory', setRawInventory, MOCK_INVENTORY, shouldSeed);
       await fetchCollection('categories', setCategories, MOCK_CATEGORIES, shouldSeed);
       await fetchCollection('units', setUnits, MOCK_UNITS, shouldSeed);
       await fetchCollection('retrieval_logs', setRetrievalLogs, [], false);
@@ -192,6 +200,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     checkAndSeed();
   }, [user, fetchAllData]);
 
+  useEffect(() => {
+    if (role === 'admin' || role === 'helpdesk') {
+        setInventory(rawInventory);
+    } else {
+        const filtered = rawInventory.filter(item =>
+            !item.allowedRoles || item.allowedRoles.length === 0 || item.allowedRoles.includes(role)
+        );
+        setInventory(filtered);
+    }
+  }, [rawInventory, role]);
+
   const addItem = async (itemData: OmitOnAdd): Promise<boolean> => {
     if (!user || role !== 'admin') {
         toast({ title: 'Permission Error', description: 'Only admins can add new items.', variant: 'destructive' });
@@ -217,7 +236,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       };
       await setDoc(itemDocRef, newItem);
       
-      setInventory(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
+      setRawInventory(prev => [...prev, newItem].sort((a, b) => a.name.localeCompare(b.name)));
 
       const logEntry: Omit<IncomingLog, 'id'> = {
         itemId: newItem.id,
@@ -257,7 +276,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             last_updated: new Date().toISOString(),
         };
         await updateDoc(itemDocRef, updatedItem);
-        setInventory(prev => prev.map(item => item.id === itemData.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
+        setRawInventory(prev => prev.map(item => item.id === itemData.id ? updatedItem : item).sort((a, b) => a.name.localeCompare(b.name)));
 
         const quantityChange = itemData.quantity - oldQuantity;
         if (quantityChange > 0) {
@@ -294,7 +313,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     try {
         await deleteDoc(doc(db, 'inventory', itemId));
-        setInventory(prev => prev.filter(item => item.id !== itemId));
+        setRawInventory(prev => prev.filter(item => item.id !== itemId));
         toast({ title: 'Item Deleted', description: `Item ${itemId} has been deleted.` });
         return true;
     } catch (error) {
@@ -307,7 +326,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const reduceStock = async (itemId: string, amount: number, reference?: string) => {
     if(!user) return;
-    const item = inventory.find(i => i.id === itemId);
+    const item = rawInventory.find(i => i.id === itemId);
     if (!item) return;
 
     const newQuantity = Math.max(0, item.quantity - amount);
@@ -332,7 +351,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         
         await batch.commit();
 
-        setInventory(prevInventory =>
+        setRawInventory(prevInventory =>
             prevInventory.map(i =>
             i.id === itemId ? { ...i, quantity: newQuantity, last_updated: new Date().toISOString() } : i
             )
@@ -363,14 +382,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateStock = async (itemId: string, newQuantity: number) => {
-     const item = inventory.find(i => i.id === itemId);
+     const item = rawInventory.find(i => i.id === itemId);
      if (!item || !user) return;
 
     try {
       const itemDoc = doc(db, 'inventory', itemId);
       await updateDoc(itemDoc, { quantity: newQuantity, last_updated: new Date().toISOString() });
       
-      setInventory(prevInventory =>
+      setRawInventory(prevInventory =>
         prevInventory.map(i =>
           i.id === itemId ? { ...i, quantity: newQuantity, last_updated: new Date().toISOString() } : i
         )
@@ -480,7 +499,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePickingListQuantity = (itemId: string, quantity: number) => {
-    const inventoryItem = inventory.find(i => i.id === itemId);
+    const inventoryItem = rawInventory.find(i => i.id === itemId);
     if (!inventoryItem) return;
 
     setPickingList(prev => prev.map(pi => pi.id === itemId ? { ...pi, quantity: Math.max(0, Math.min(quantity, inventoryItem.quantity)) } : pi));
@@ -571,6 +590,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const newItem: InventoryItem = {
                 ...itemData,
                 last_updated: new Date().toISOString(),
+                allowedRoles: itemData.allowedRoles || ['teknisi', 'cleaning', 'ipm'] // Default if not present
             };
 
             if (itemDoc.exists()) {
@@ -611,7 +631,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     try {
         const batch = writeBatch(db);
-        const updatedInventory = [...inventory];
+        const updatedInventory = [...rawInventory];
         const stockTakeDetails: StockTakeItemDetail[] = [];
         const newIncomingLogs: IncomingLog[] = [];
 
@@ -666,7 +686,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         await batch.commit();
         
-        setInventory(updatedInventory);
+        setRawInventory(updatedInventory);
         setStockTakeLogs(prev => [{ ...newStockTakeLog, id: stockTakeLogRef.id }, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
         if (newIncomingLogs.length > 0) {
             setIncomingLogs(prev => [...newIncomingLogs, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));

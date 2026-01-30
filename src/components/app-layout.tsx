@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useContext } from 'react';
@@ -27,6 +28,9 @@ const getRoleDisplayName = (role: UserRole) => {
         case 'admin': return 'Administrator';
         case 'user': return 'Warehouse User';
         case 'helpdesk': return 'Helpdesk';
+        case 'teknisi': return 'Teknisi';
+        case 'cleaning': return 'Cleaning';
+        case 'ipm': return 'IPM';
         default: return 'User';
     }
 }
@@ -36,6 +40,9 @@ const getAvatarFallback = (role: UserRole) => {
         case 'admin': return 'A';
         case 'user': return 'U';
         case 'helpdesk': return 'H';
+        case 'teknisi': return 'T';
+        case 'cleaning': return 'C';
+        case 'ipm': return 'I';
         default: return 'U';
     }
 }

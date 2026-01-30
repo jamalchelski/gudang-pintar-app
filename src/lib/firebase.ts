@@ -1,4 +1,5 @@
 
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
@@ -43,6 +44,25 @@ export const seedAuth = async () => {
     } catch (error) {
         console.log("Helpdesk user not found, creating it.");
         await createUserWithEmailAndPassword(auth, 'helpdesk@gudang.com', 'password123');
+    }
+
+     try {
+        await signInWithEmailAndPassword(auth, 'teknisi@gudang.com', 'password123');
+    } catch (error) {
+        console.log("Teknisi user not found, creating it.");
+        await createUserWithEmailAndPassword(auth, 'teknisi@gudang.com', 'password123');
+    }
+     try {
+        await signInWithEmailAndPassword(auth, 'cleaning@gudang.com', 'password123');
+    } catch (error) {
+        console.log("Cleaning user not found, creating it.");
+        await createUserWithEmailAndPassword(auth, 'cleaning@gudang.com', 'password123');
+    }
+     try {
+        await signInWithEmailAndPassword(auth, 'ipm@gudang.com', 'password123');
+    } catch (error) {
+        console.log("IPM user not found, creating it.");
+        await createUserWithEmailAndPassword(auth, 'ipm@gudang.com', 'password123');
     }
 };
 

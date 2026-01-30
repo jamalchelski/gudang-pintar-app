@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useContext } from 'react';
@@ -20,8 +21,10 @@ export function PickingList() {
     // Ensure quantity doesn't exceed available stock
     if (!isNaN(quantity) && quantity >= 0 && quantity <= originalItem.quantity) {
         updatePickingListQuantity(itemId, quantity);
-    } else if (value === '') {
+    } else if (value === '' || quantity < 0) {
         updatePickingListQuantity(itemId, 0);
+    } else if (quantity > originalItem.quantity) {
+        updatePickingListQuantity(itemId, originalItem.quantity);
     }
   };
 
@@ -44,7 +47,7 @@ export function PickingList() {
                             type="number"
                             value={item.quantity}
                             onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                            min="1"
+                            min="0"
                             max={originalItem?.quantity}
                             className="h-8 text-center"
                         />
