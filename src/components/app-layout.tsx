@@ -64,8 +64,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar className="hidden md:block">
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="OCS CONSUMABLE STOCK Logo" width={40} height={40} />
-            <h1 className="text-lg font-bold text-sidebar-foreground">OCS CONSUMABLE STOCK</h1>
+            <Image src="/logo.png" alt="Consumable App Logo" width={40} height={40} />
+            <div>
+                <h1 className="text-lg font-bold text-sidebar-foreground">Consumable App</h1>
+                <p className="text-xs text-sidebar-foreground/70">ISS-MRCCC</p>
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -85,7 +88,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-16 items-center justify-between p-4 border-b bg-background md:justify-end">
           <div className="w-8 md:hidden"></div>
           <div className="flex-1 text-center md:hidden">
-            <h1 className="text-sm font-bold">OCS CONSUMABLE STOCK</h1>
+            <div>
+                <h1 className="text-sm font-bold">Consumable App</h1>
+                <p className="text-xs text-muted-foreground">ISS-MRCCC</p>
+            </div>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <Avatar>
